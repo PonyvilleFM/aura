@@ -222,7 +222,7 @@ func (a *aura) djoff(s *discordgo.Session, m *discordgo.Message, parv []string) 
 		a.state.Shorturls[id] = recurl
 		a.state.Save()
 
-		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Recording complete: https://%s/id/%s", recordingDomain, id))
+		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Recording complete (%s): https://%s/id/%s", time.Now().Sub(r.StartTime()).String(), recordingDomain, id))
 
 		a.guildRecordings[gid] = nil
 	}()
