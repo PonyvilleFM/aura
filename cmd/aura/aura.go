@@ -165,14 +165,15 @@ func (a *aura) djon(s *discordgo.Session, m *discordgo.Message, parv []string) e
 
 	gid := ch.GuildID
 
-	_, ok := a.guildRecordings[gid]
-	if ok {
+	r, ok := a.guildRecordings[gid]
+	if r != nil || ok {
+		log.Println(a.guildRecordings)
 		return errors.New("aura: another recording is already in progress")
 	}
 
 	os.Mkdir(path.Join(dataPrefix, gid), 0775)
 
-	r, err := recording.New(a.state.DownloadURLs[gid], path.Join(dataPrefix, gid, fname))
+	r, err = recording.New(a.state.DownloadURLs[gid], path.Join(dataPrefix, gid, fname))
 	if err != nil {
 		return err
 	}
@@ -198,7 +199,8 @@ func (a *aura) djoff(s *discordgo.Session, m *discordgo.Message, parv []string) 
 	}
 
 	r, ok := a.guildRecordings[gid]
-	if !ok {
+	if r == nil || !ok {
+		log.Println(a.guildRecordings)
 		return errors.New("aura: no recording is currently in progress")
 	}
 
@@ -224,8 +226,9 @@ func (a *aura) djoff(s *discordgo.Session, m *discordgo.Message, parv []string) 
 
 		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Recording complete (%s): https://%s/id/%s", time.Now().Sub(r.StartTime()).String(), recordingDomain, id))
 
-		a.guildRecordings[gid] = nil
+		delete(a.guildRecordings, gid)
 	}()
+
 	return nil
 }
 
