@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/PonyvilleFM/aura/bot"
@@ -163,7 +165,9 @@ func (a *aura) djon(s *discordgo.Session, m *discordgo.Message, parv []string) e
 		return errors.New("aura: another recording is already in progress")
 	}
 
-	r, err := recording.New(a.state.DownloadURLs[gid], path.Join(dataPrefix, fname))
+	os.Mkdir(path.Join(dataPrefix, gid), 0775)
+
+	r, err := recording.New(a.state.DownloadURLs[gid], path.Join(dataPrefix, gid, fname))
 	if err != nil {
 		return err
 	}
@@ -192,7 +196,10 @@ func (a *aura) djoff(s *discordgo.Session, m *discordgo.Message, parv []string) 
 	r.Cancel()
 	<-r.Done()
 
-	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Recording complete: %s", r.OutputFilename()))
+	fname := r.OutputFilename()
+	parts := strings.Split(fname, "/")
+
+	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Recording complete: https://pvfmrecordings.greedo.xeserv.us/var/%s/%s", parts[1], url.QueryEscape(parts[2])))
 
 	return nil
 }
