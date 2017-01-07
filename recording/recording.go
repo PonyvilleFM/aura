@@ -83,6 +83,7 @@ func (r *Recording) Start() error {
 
 		select {
 		case <-r.ctx.Done():
+			r.fout.Sync()
 			return nil
 		case <-c.C:
 			if r.Debug {
