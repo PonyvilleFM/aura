@@ -16,11 +16,12 @@ var (
 
 // Recording ...
 type Recording struct {
-	ctx    context.Context
-	url    string
-	fname  string
-	fout   *os.File
-	cancel context.CancelFunc
+	ctx     context.Context
+	url     string
+	fname   string
+	fout    *os.File
+	cancel  context.CancelFunc
+	started time.Time
 
 	Debug bool
 	Err   error
@@ -36,11 +37,12 @@ func New(url, fname string) (*Recording, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Hour)
 
 	r := &Recording{
-		ctx:    ctx,
-		url:    url,
-		fname:  fname,
-		fout:   fout,
-		cancel: cancel,
+		ctx:     ctx,
+		url:     url,
+		fname:   fname,
+		fout:    fout,
+		cancel:  cancel,
+		started: time.Now(),
 	}
 
 	return r, nil
@@ -57,6 +59,11 @@ func (r *Recording) Done() <-chan struct{} {
 // OutputFilename gets the output filename originally passed into New.
 func (r *Recording) OutputFilename() string {
 	return r.fname
+}
+
+// StartTime gets start time
+func (r *Recording) StartTime() time.Time {
+	return r.started
 }
 
 // Start blockingly starts the recording and returns the error if one is encountered while streaming.
