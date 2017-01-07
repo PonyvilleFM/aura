@@ -8,7 +8,8 @@ announcing about them after they are done recording.
 It needs the following permissions:
 
 - Manage Roles
-  It needs this
+  - It needs this in order for it to be able to check permissions.
+    Aura will not modify any existing roles. You can check the code to verify this.
 - Read Messages
 - Send Messages
 - Read Message History
