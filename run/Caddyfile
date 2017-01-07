@@ -1,0 +1,11 @@
+pvfm.cf {
+          log syslog
+          errors syslog
+          tls me@christine.website
+
+          proxy / http://127.0.0.1:12342 {
+                proxy_header X-Forwarded-Proto {scheme}
+                proxy_header X-Forwarded-For {host}
+                proxy_header Host {host}
+          }
+}
