@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math/rand"
+	"net/http"
 	"net/url"
 	"os"
 	"path"
@@ -15,6 +17,7 @@ import (
 	"github.com/PonyvilleFM/aura/recording"
 	"github.com/bwmarrin/discordgo"
 	_ "github.com/joho/godotenv/autoload"
+	hashids "github.com/speps/go-hashids"
 )
 
 type aura struct {
@@ -23,11 +26,13 @@ type aura struct {
 
 	guildRecordings map[string]*recording.Recording
 	state           *state
+	hid             *hashids.HashID
 }
 
 type state struct {
 	DownloadURLs map[string]string // Guild ID -> URL
 	PermRoles    map[string]string // Guild ID -> needed role ID
+	Shorturls    map[string]string // hashid -> partial route
 }
 
 func (s *state) Save() error {
@@ -188,19 +193,39 @@ func (a *aura) djoff(s *discordgo.Session, m *discordgo.Message, parv []string) 
 
 	gid := ch.GuildID
 
+	urlencode := func(inp string) string {
+		return (&url.URL{Path: inp}).String()
+	}
+
 	r, ok := a.guildRecordings[gid]
 	if !ok {
 		return errors.New("aura: no recording is currently in progress")
 	}
 
-	r.Cancel()
-	<-r.Done()
+	s.ChannelMessageSend(m.ChannelID, "Finishing recording (waiting 30 seconds)")
+	go func() {
+		time.Sleep(30 * time.Second)
 
-	fname := r.OutputFilename()
-	parts := strings.Split(fname, "/")
+		r.Cancel()
+		<-r.Done()
 
-	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Recording complete: https://pvfmrecordings.greedo.xeserv.us/var/%s/%s", parts[1], url.QueryEscape(parts[2])))
+		fname := r.OutputFilename()
+		parts := strings.Split(fname, "/")
 
+		recurl := fmt.Sprintf("https://%s/var/%s/%s", recordingDomain, parts[1], urlencode(parts[2]))
+		id, err := a.hid.EncodeInt64([]int64{rand.Int63()})
+		if err != nil {
+			s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("This state should be impossible. Recording saved but unknown short URL: %v", err))
+			return
+		}
+
+		a.state.Shorturls[id] = recurl
+		a.state.Save()
+
+		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Recording complete: https://%s/id/%s", recordingDomain, id))
+
+		a.guildRecordings[gid] = nil
+	}()
 	return nil
 }
 
@@ -212,8 +237,11 @@ func (a *aura) Handle(s *discordgo.Session, m *discordgo.MessageCreate) {
 }
 
 var (
-	token      = os.Getenv("TOKEN")
-	dataPrefix = os.Getenv("DATA_PREFIX")
+	token           = os.Getenv("TOKEN")
+	dataPrefix      = os.Getenv("DATA_PREFIX")
+	recordingDomain = os.Getenv("RECORDING_DOMAIN")
+	hashidsSalt     = os.Getenv("HASHIDS_SALT")
+	port            = os.Getenv("PORT")
 )
 
 func main() {
@@ -222,14 +250,20 @@ func main() {
 		log.Fatal(err)
 	}
 
+	hid := hashids.NewData()
+	hid.Salt = hashidsSalt
+
 	a := &aura{
 		cs:              bot.NewCommandSet(),
 		s:               dg,
 		guildRecordings: map[string]*recording.Recording{},
 
+		hid: hashids.NewWithData(hid),
+
 		state: &state{
 			DownloadURLs: map[string]string{},
 			PermRoles:    map[string]string{},
+			Shorturls:    map[string]string{},
 		},
 	}
 
@@ -252,7 +286,26 @@ func main() {
 	}
 
 	log.Println("ready")
-	<-make(chan struct{})
+
+	http.Handle("/id/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id := r.RequestURI[4:]
+
+		redir, ok := a.state.Shorturls[id]
+		if !ok {
+			http.Error(w, "not found, sorry", http.StatusNotFound)
+			return
+		}
+
+		http.Redirect(w, r, redir, http.StatusFound)
+	}))
+
+	http.HandleFunc("/links.json", func(w http.ResponseWriter, r *http.Request) {
+		json.NewEncoder(w).Encode(a.state.Shorturls)
+	})
+
+	http.Handle("/var/", http.FileServer(http.Dir(".")))
+
+	http.ListenAndServe(":"+port, nil)
 }
 
 // This function will be called (due to AddHandler above) every time a new
