@@ -1,3 +1,6 @@
+/*
+Package schedule grabs DJ schedule data from Ponyville FM's servers.
+*/
 package schedule
 
 import (

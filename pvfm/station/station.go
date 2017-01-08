@@ -1,3 +1,6 @@
+/*
+Package station grabs fallback data from the radio station.
+*/
 package station
 
 import (

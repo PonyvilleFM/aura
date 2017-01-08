@@ -1,3 +1,6 @@
+/*
+Package pvl grabs Ponyville Live data.
+*/
 package pvl
 
 import (
@@ -38,6 +41,7 @@ type Calendar struct {
 	Status string `json:"status"`
 }
 
+// Get grabs the station schedule from Ponyville Live.
 func Get() (Calendar, error) {
 	now := time.Now()
 	if now.Before(latestInfo.Age.Add(time.Second * time.Duration(*bugTime))) {

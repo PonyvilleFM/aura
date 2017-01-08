@@ -1,3 +1,6 @@
+/*
+Package pvfm grabs information about PonyvilleFM from the station servers.
+*/
 package pvfm
 
 import (
