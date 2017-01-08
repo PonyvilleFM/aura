@@ -3,3 +3,5 @@ var
 *.so
 *.a
 stream.mp3
+./aura
+./aerial

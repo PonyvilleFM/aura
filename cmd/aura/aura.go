@@ -157,7 +157,10 @@ func (a *aura) setup(s *discordgo.Session, m *discordgo.Message, parv []string) 
 }
 
 func (a *aura) djon(s *discordgo.Session, m *discordgo.Message, parv []string) error {
-	fname := fmt.Sprintf("%s - %s.mp3", m.Author.Username, time.Now().Format(time.ANSIC))
+	fname, err := genFname(m.Author)
+	if err != nil {
+		return err
+	}
 
 	ch, err := s.Channel(m.ChannelID)
 	if err != nil {
