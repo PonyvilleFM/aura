@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/PonyvilleFM/aura/bot"
+	"github.com/PonyvilleFM/aura/commands/source"
 	"github.com/bwmarrin/discordgo"
 	_ "github.com/joho/godotenv/autoload"
 )
@@ -35,6 +36,8 @@ var (
 	username          = os.Getenv("USERNAME")
 	password          = os.Getenv("PASSWORD")
 	youtubeSpamRoomID = os.Getenv("DISCORD_YOUTUBESPAM_ROOMID")
+	gClientID         = os.Getenv("GOOGLE_CLIENT_ID")
+	gClientSecret     = os.Getenv("GOOGLE_CLIENT_SECRET")
 
 	musicLinkRegex = regexp.MustCompile(`(.*)((http(s?):\/\/(www\.)?soundcloud.com\/.*)|(http(s?):\/\/(www\.)?youtube.com\/.*)|(http(s?):\/\/(www\.)?youtu.be\/.*))(.*)|(.*)http(s?):\/\/(www\.)?mixcloud.com\/.*`)
 )
@@ -58,10 +61,12 @@ func main() {
 	a.cs.AddCmd("schedule", "shows the future radio schedule for Ponyville FM", bot.NoPermissions, schedule)
 	a.cs.AddCmd("printerfact", "shows useful facts about printers", bot.NoPermissions, printerFact)
 	a.cs.AddCmd("hipster", "hip me up fam", bot.NoPermissions, hipster)
+	a.cs.AddCmd("source", "Source code information", bot.NoPermissions, source.Source)
 
 	dg.AddHandler(a.Handle)
 	dg.AddHandler(pesterLink)
 	dg.AddHandler(messageCreate)
+	dg.AddHandler(imageMeEvent)
 
 	err = dg.Open()
 	if err != nil {

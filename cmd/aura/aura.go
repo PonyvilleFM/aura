@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/PonyvilleFM/aura/bot"
+	"github.com/PonyvilleFM/aura/commands/source"
 	"github.com/PonyvilleFM/aura/recording"
 	"github.com/bwmarrin/discordgo"
 	_ "github.com/joho/godotenv/autoload"
@@ -283,10 +284,11 @@ func main() {
 		log.Println(err)
 	}
 
-	a.cs.Add(bot.NewBasicCommand("roles", "", bot.NoPermissions, a.roles))
-	a.cs.Add(bot.NewBasicCommand("setup", setupHelp, bot.NoPermissions, a.setup))
-	a.cs.Add(bot.NewBasicCommand("djon", djonHelp, a.Permissons, a.djon))
-	a.cs.Add(bot.NewBasicCommand("djoff", djoffHelp, a.Permissons, a.djoff))
+	a.cs.AddCmd("roles", "", bot.NoPermissions, a.roles)
+	a.cs.AddCmd("setup", setupHelp, bot.NoPermissions, a.setup)
+	a.cs.AddCmd("djon", djonHelp, a.Permissons, a.djon)
+	a.cs.AddCmd("djoff", djoffHelp, a.Permissons, a.djoff)
+	a.cs.AddCmd("source", "Source code information", bot.NoPermissions, source.Source)
 
 	dg.AddHandler(a.Handle)
 	dg.AddHandler(messageCreate)
