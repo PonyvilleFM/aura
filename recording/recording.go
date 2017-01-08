@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"errors"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -16,12 +17,13 @@ var (
 
 // Recording ...
 type Recording struct {
-	ctx     context.Context
-	url     string
-	fname   string
-	fout    *os.File
-	cancel  context.CancelFunc
-	started time.Time
+	ctx      context.Context
+	url      string
+	fname    string
+	fout     *os.File
+	cancel   context.CancelFunc
+	started  time.Time
+	restarts int
 
 	Debug bool
 	Err   error
@@ -86,7 +88,7 @@ func (r *Recording) Start() error {
 	buf := make([]byte, 65536)
 
 	for {
-		time.Sleep(250 * time.Millisecond)
+		time.Sleep(65 * time.Millisecond)
 
 		select {
 		case <-r.ctx.Done():
@@ -104,6 +106,24 @@ func (r *Recording) Start() error {
 		default:
 			nr, err := reader.Read(buf)
 			if err != nil {
+				if err == io.EOF {
+					log.Println("restarting download")
+					r.fout, err = os.Create(r.fname + "1")
+					if err != nil {
+						return err
+					}
+
+					resp, err := http.Get(r.url)
+					if err != nil {
+						return err
+					}
+
+					reader = bufio.NewReader(resp.Body)
+					defer resp.Body.Close()
+					defer r.fout.Close()
+					r.restarts++
+					continue
+				}
 				r.Err = err
 				return err
 			}
