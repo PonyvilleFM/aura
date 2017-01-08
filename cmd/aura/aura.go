@@ -179,7 +179,13 @@ func (a *aura) djon(s *discordgo.Session, m *discordgo.Message, parv []string) e
 	}
 
 	a.guildRecordings[gid] = r
-	go r.Start()
+	go func() {
+		err := r.Start()
+		if err != nil {
+			s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("recording error: %v", err))
+			return
+		}
+	}()
 
 	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Now recording: %s", fname))
 
@@ -206,7 +212,9 @@ func (a *aura) djoff(s *discordgo.Session, m *discordgo.Message, parv []string) 
 
 	s.ChannelMessageSend(m.ChannelID, "Finishing recording (waiting 30 seconds)")
 	go func() {
-		time.Sleep(30 * time.Second)
+		if r.Err == nil {
+			time.Sleep(30 * time.Second)
+		}
 
 		r.Cancel()
 		<-r.Done()
