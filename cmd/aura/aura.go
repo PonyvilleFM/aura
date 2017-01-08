@@ -25,7 +25,7 @@ type aura struct {
 	cs *bot.CommandSet
 	s  *discordgo.Session
 
-	guildRecordings map[string]*recording.Recording
+	guildRecordings map[string]*rec
 	state           *state
 	hid             *hashids.HashID
 }
@@ -54,6 +54,11 @@ func (s *state) Load() error {
 	defer fin.Close()
 
 	return json.NewDecoder(fin).Decode(s)
+}
+
+type rec struct {
+	*recording.Recording
+	creator string
 }
 
 const (
@@ -169,29 +174,49 @@ func (a *aura) djon(s *discordgo.Session, m *discordgo.Message, parv []string) e
 
 	gid := ch.GuildID
 
-	r, ok := a.guildRecordings[gid]
-	if r != nil || ok {
+	_, ok := a.guildRecordings[gid]
+	if ok {
 		log.Println(a.guildRecordings)
 		return errors.New("aura: another recording is already in progress")
 	}
 
 	os.Mkdir(path.Join(dataPrefix, gid), 0775)
 
-	r, err = recording.New(a.state.DownloadURLs[gid], path.Join(dataPrefix, gid, fname))
+	rr, err := recording.New(a.state.DownloadURLs[gid], path.Join(dataPrefix, gid, fname))
 	if err != nil {
 		return err
 	}
 
-	a.guildRecordings[gid] = r
+	a.guildRecordings[gid] = &rec{
+		Recording: rr,
+		creator:   m.Author.Username,
+	}
+
 	go func() {
-		err := r.Start()
+		err := rr.Start()
 		if err != nil {
 			s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("recording error: %v", err))
 			return
 		}
 	}()
 
-	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Now recording: %s", fname))
+	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Now recording: `%s`", fname))
+
+	inv, err := s.ChannelInviteCreate(gid, discordgo.Invite{
+		MaxAge: 4800,
+	})
+	if err != nil {
+		log.Println(err)
+		return nil
+	}
+
+	invurl := "http://discord.gg/" + inv.Code
+
+	err = announce("Live DJ on-air: " + m.Author.Username + "\nJoin our chat here: " + invurl)
+	if err != nil {
+		log.Println(err)
+		return nil
+	}
 
 	return nil
 }
@@ -222,6 +247,7 @@ func (a *aura) djoff(s *discordgo.Session, m *discordgo.Message, parv []string) 
 
 		r.Cancel()
 		<-r.Done()
+		defer delete(a.guildRecordings, gid)
 
 		fname := r.OutputFilename()
 		parts := strings.Split(fname, "/")
@@ -236,9 +262,19 @@ func (a *aura) djoff(s *discordgo.Session, m *discordgo.Message, parv []string) 
 		a.state.Shorturls[id] = recurl
 		a.state.Save()
 
-		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Recording complete (%s): https://%s/id/%s", time.Now().Sub(r.StartTime()).String(), recordingDomain, id))
+		slink := fmt.Sprintf("https://%s/id/%s", recordingDomain, id)
 
-		delete(a.guildRecordings, gid)
+		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Recording complete (%s): %s", time.Now().Sub(r.StartTime()).String(), slink))
+
+		sn := r.creator
+
+		msg := fmt.Sprintf("New recording by %s: %s", sn, slink)
+		err = announce(msg)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
 	}()
 
 	return nil
@@ -271,7 +307,7 @@ func main() {
 	a := &aura{
 		cs:              bot.NewCommandSet(),
 		s:               dg,
-		guildRecordings: map[string]*recording.Recording{},
+		guildRecordings: map[string]*rec{},
 
 		hid: hashids.NewWithData(hid),
 

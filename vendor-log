@@ -10,3 +10,13 @@ f6b343c37ca80bfa8ea539da67a0b621f84fab1d	golang.org/x/crypto/salsa20/salsa
 881bee4e20a5d11a6a88a5667c6f292072ac1963	github.com/Sirupsen/logrus
 8eaf59696ea40194d680e6c2d8e6e7c609f2836c	github.com/paddycarey/gophy
 3f9c7761e3124a331848c11a2f168afd8b105d9f (dirty)	github.com/tebeka/strftime
+b02f2bbce11d7ea6b97f282ef1771b0fe2f65ef3	github.com/cenkalti/backoff
+160ae6282d8c48a33d8c150e4e4817fdef8a5cde	github.com/coreos/pkg/flagutil
+4522457ad39f70da4f2c28f8e2b6d05895562064	github.com/dghubble/go-twitter/examples
+4522457ad39f70da4f2c28f8e2b6d05895562064	github.com/dghubble/go-twitter/twitter
+67de46873d807fffa7cd47fdae2531e23a8e994c	github.com/dghubble/oauth1
+eb56e89ac5088bebb12eef3cb4b293300f43608b	github.com/dghubble/sling
+9235644dd9e52eeae6fa48efd539fdc351a0af53	github.com/google/go-querystring/query
+45e771701b814666a7eb299e6c7a57d0b1799e91	golang.org/x/net/context
+c406a4cc4ba462e5dc2f16225c5bd9488f9cbe10	golang.org/x/oauth2
+c406a4cc4ba462e5dc2f16225c5bd9488f9cbe10	golang.org/x/oauth2/internal

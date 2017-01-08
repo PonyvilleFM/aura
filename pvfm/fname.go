@@ -2,6 +2,7 @@ package pvfm
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"git.xeserv.us/PVFM/magi-v2/pvl"
@@ -21,7 +22,7 @@ func GenFilename() (string, error) {
 		// return fmt.Sprintf("%s - %s.mp3", now.Title, localTime.Format(time.RFC822)), nil
 	}
 
-	return fmt.Sprintf("%s - %s.mp3", now.Title, localTime.Format(time.RFC822)), nil
+	now.Title = strings.Replace(now.Title, "/", "-slash-", 0)
 
-	// return "", errors.New("pvfm: no DJ is live, cannot make filename")
+	return fmt.Sprintf("%s - %s.mp3", now.Title, localTime.Format(time.RFC822)), nil
 }
