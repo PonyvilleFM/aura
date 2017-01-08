@@ -49,9 +49,10 @@ func (bc *basicCommand) Permissions(s *discordgo.Session, m *discordgo.Message, 
 var (
 	DefaultCommandSet = NewCommandSet()
 
-	ErrAlreadyExists = errors.New("bot: command already exists")
-	ErrNoSuchCommand = errors.New("bot: no such command exists")
-	ErrNoPermissions = errors.New("bot: you do not have permissions for this command")
+	ErrAlreadyExists     = errors.New("bot: command already exists")
+	ErrNoSuchCommand     = errors.New("bot: no such command exists")
+	ErrNoPermissions     = errors.New("bot: you do not have permissions for this command")
+	ErrParvCountMismatch = errors.New("bot: parameter count mismatch")
 )
 
 const (
@@ -82,14 +83,22 @@ type CommandSet struct {
 }
 
 func NewCommandSet() *CommandSet {
-	return &CommandSet{
+	cs := &CommandSet{
 		cmds:   map[string]CommandHandler{},
 		Prefix: DefaultPrefix,
 	}
+
+	cs.AddCmd("help", "Shows help for the bot", NoPermissions, cs.help)
+
+	return cs
 }
 
 func NoPermissions(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 	return nil
+}
+
+func (cs *CommandSet) AddCmd(verb, helptext string, permissions, handler Handler) error {
+	return cs.Add(NewBasicCommand(verb, helptext, permissions, handler))
 }
 
 func (cs *CommandSet) Add(h CommandHandler) error {
