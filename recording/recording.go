@@ -3,12 +3,9 @@ package recording
 import (
 	"context"
 	"errors"
-	"io/ioutil"
 	"log"
-	"math/rand"
 	"os"
 	"os/exec"
-	"strconv"
 	"time"
 )
 
@@ -44,10 +41,12 @@ func New(url, fname string) (*Recording, error) {
 	return r, nil
 }
 
+// Cancel stops the recording.
 func (r *Recording) Cancel() {
 	r.cancel()
 }
 
+// Done returns the done channel of the recording.
 func (r *Recording) Done() <-chan struct{} {
 	return r.ctx.Done()
 }
@@ -70,13 +69,7 @@ func (r *Recording) Start() error {
 		return err
 	}
 
-	dir, err := ioutil.TempDir("", strconv.Itoa(rand.Int()))
-	if err != nil {
-		return err
-	}
-	defer os.RemoveAll(dir)
-
-	cmd := exec.Command(sr, r.url, "-d", ".", "-a", r.fname)
+	cmd := exec.Command(sr, r.url, "-a", r.fname)
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
 
