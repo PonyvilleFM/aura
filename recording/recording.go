@@ -1,13 +1,14 @@
 package recording
 
 import (
-	"bufio"
 	"context"
 	"errors"
-	"io"
+	"io/ioutil"
 	"log"
-	"net/http"
+	"math/rand"
 	"os"
+	"os/exec"
+	"strconv"
 	"time"
 )
 
@@ -20,7 +21,6 @@ type Recording struct {
 	ctx      context.Context
 	url      string
 	fname    string
-	fout     *os.File
 	cancel   context.CancelFunc
 	started  time.Time
 	restarts int
@@ -31,18 +31,12 @@ type Recording struct {
 
 // New creates a new Recording of the given URL to the given filename for output.
 func New(url, fname string) (*Recording, error) {
-	fout, err := os.Create(fname)
-	if err != nil {
-		return nil, err
-	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Hour)
 
 	r := &Recording{
 		ctx:     ctx,
 		url:     url,
 		fname:   fname,
-		fout:    fout,
 		cancel:  cancel,
 		started: time.Now(),
 	}
@@ -71,74 +65,45 @@ func (r *Recording) StartTime() time.Time {
 // Start blockingly starts the recording and returns the error if one is encountered while streaming.
 // This should be stopped in another goroutine.
 func (r *Recording) Start() error {
-	resp, err := http.Get(r.url)
+	sr, err := exec.LookPath("streamripper")
 	if err != nil {
 		return err
 	}
 
-	defer resp.Body.Close()
-	defer r.fout.Close()
+	dir, err := ioutil.TempDir("", strconv.Itoa(rand.Int()))
+	if err != nil {
+		return err
+	}
+	defer os.RemoveAll(dir)
+
+	cmd := exec.Command(sr, r.url, "-d", ".", "-a", r.fname)
+	cmd.Stderr = os.Stderr
+	cmd.Stdout = os.Stdout
+
+	log.Printf("%s: %v", cmd.Path, cmd.Args)
+
+	err = cmd.Start()
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		defer r.Cancel()
+		err := cmd.Wait()
+		if err != nil {
+			log.Println(err)
+		}
+	}()
+
 	defer r.cancel()
 
-	reader := bufio.NewReader(resp.Body)
-
-	c := time.NewTicker(5 * time.Second)
-	defer c.Stop()
-
-	buf := make([]byte, 65536)
-
 	for {
-		time.Sleep(65 * time.Millisecond)
+		time.Sleep(250 * time.Millisecond)
 
 		select {
 		case <-r.ctx.Done():
-			r.fout.Sync()
-			return nil
-		case <-c.C:
-			if r.Debug {
-				log.Println("Syncing file")
-			}
-			err := r.fout.Sync()
-			if err != nil {
-				r.Err = err
-				return err
-			}
+			return cmd.Process.Signal(os.Interrupt)
 		default:
-			nr, err := reader.Read(buf)
-			if err != nil {
-				if err == io.EOF {
-					log.Println("restarting download")
-					r.fout, err = os.Create(r.fname + "1")
-					if err != nil {
-						return err
-					}
-
-					resp, err := http.Get(r.url)
-					if err != nil {
-						return err
-					}
-
-					reader = bufio.NewReader(resp.Body)
-					defer resp.Body.Close()
-					defer r.fout.Close()
-					r.restarts++
-					continue
-				}
-				r.Err = err
-				return err
-			}
-
-			if r.Debug {
-				log.Printf("%d bytes read", nr)
-			}
-
-			buf = buf[:nr]
-
-			_, err = r.fout.Write(buf)
-			if err != nil {
-				r.Err = err
-				return err
-			}
 		}
 	}
 }
