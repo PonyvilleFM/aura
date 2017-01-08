@@ -6,3 +6,7 @@ adf16b31781325cbd41085c5be901d95b4d1f33d	github.com/gorilla/websocket
 f6b343c37ca80bfa8ea539da67a0b621f84fab1d	golang.org/x/crypto/nacl/secretbox
 f6b343c37ca80bfa8ea539da67a0b621f84fab1d	golang.org/x/crypto/poly1305
 f6b343c37ca80bfa8ea539da67a0b621f84fab1d	golang.org/x/crypto/salsa20/salsa
+104cc800bd6434e70cb0c3ad08c4541f4f2eb48b	github.com/Pallinder/go-randomdata
+881bee4e20a5d11a6a88a5667c6f292072ac1963	github.com/Sirupsen/logrus
+8eaf59696ea40194d680e6c2d8e6e7c609f2836c	github.com/paddycarey/gophy
+3f9c7761e3124a331848c11a2f168afd8b105d9f (dirty)	github.com/tebeka/strftime
