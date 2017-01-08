@@ -69,7 +69,7 @@ func (r *Recording) Start() error {
 		return err
 	}
 
-	cmd := exec.Command(sr, r.url, "-a", r.fname)
+	cmd := exec.Command(sr, r.url, "-A", "-a", r.fname)
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
 
