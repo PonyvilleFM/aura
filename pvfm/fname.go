@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"git.xeserv.us/PVFM/magi-v2/pvl"
+	"github.com/PonyvilleFM/aura/pvfm/pvl"
 )
 
 func GenFilename() (string, error) {
