@@ -253,7 +253,7 @@ func (a *aura) djoff(s *discordgo.Session, m *discordgo.Message, parv []string) 
 		parts := strings.Split(fname, "/")
 
 		recurl := fmt.Sprintf("https://%s/var/%s/%s", recordingDomain, parts[1], urlencode(parts[2]))
-		id, err := a.hid.EncodeInt64([]int64{rand.Int63()})
+		id, err := a.hid.EncodeInt64([]int64{int64(rand.Int())})
 		if err != nil {
 			s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("This state should be impossible. Recording saved but unknown short URL: %v", err))
 			return
@@ -274,7 +274,6 @@ func (a *aura) djoff(s *discordgo.Session, m *discordgo.Message, parv []string) 
 			log.Println(err)
 			return
 		}
-
 	}()
 
 	return nil
