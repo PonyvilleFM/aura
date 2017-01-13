@@ -98,7 +98,6 @@ func NoPermissions(s *discordgo.Session, m *discordgo.Message, parv []string) er
 }
 
 func (cs *CommandSet) AddCmd(verb, helptext string, permissions, handler Handler) error {
-	log.Printf("Added command %s: %s", verb, helptext)
 	return cs.Add(NewBasicCommand(verb, helptext, permissions, handler))
 }
 
@@ -137,7 +136,6 @@ func (cs *CommandSet) Run(s *discordgo.Session, msg *discordgo.Message) error {
 			return ErrNoPermissions
 		}
 
-		log.Println("calling command handler")
 		err = cmd.Handler(s, msg, params)
 		if err != nil {
 			log.Printf("command handler error: %v", err)

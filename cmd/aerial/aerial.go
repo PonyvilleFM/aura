@@ -43,12 +43,10 @@ var (
 
 func main() {
 	flag.Parse()
-	dg, err := discordgo.New("Bot" + botToken)
+	dg, err := discordgo.New(botToken)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	log.SetFlags(log.LstdFlags | log.Llongfile)
 
 	a := &aerial{
 		cs: bot.NewCommandSet(),

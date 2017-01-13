@@ -18,10 +18,7 @@ func (cs *CommandSet) help(s *discordgo.Session, m *discordgo.Message, parv []st
 
 		result += "If there's any problems please don't hesitate to ask a server admin for help."
 
-		_, err := s.ChannelMessageSend(m.ChannelID, result)
-		if err != nil {
-			return err
-		}
+		s.ChannelMessageSend(m.ChannelID, result)
 
 	default:
 		return ErrParvCountMismatch
