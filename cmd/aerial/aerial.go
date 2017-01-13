@@ -33,7 +33,8 @@ func (a *aerial) Handle(s *discordgo.Session, m *discordgo.MessageCreate) {
 }
 
 var (
-	botToken          = os.Getenv("TOKEN")
+	username          = os.Getenv("USERNAME")
+	password          = os.Getenv("PASSWORD")
 	youtubeSpamRoomID = os.Getenv("DISCORD_YOUTUBESPAM_ROOMID")
 	gClientID         = os.Getenv("GOOGLE_CLIENT_ID")
 	gClientSecret     = os.Getenv("GOOGLE_CLIENT_SECRET")
@@ -43,7 +44,7 @@ var (
 
 func main() {
 	flag.Parse()
-	dg, err := discordgo.New(botToken)
+	dg, err := discordgo.New(username, password)
 	if err != nil {
 		log.Fatal(err)
 	}
