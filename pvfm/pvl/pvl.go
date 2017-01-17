@@ -5,9 +5,11 @@ package pvl
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -54,6 +56,10 @@ func Get() (Calendar, error) {
 		return Calendar{}, err
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode/100 == 5 {
+		return Calendar{}, errors.New("pvl: API returned " + strconv.Itoa(resp.StatusCode) + " " + resp.Status)
+	}
 
 	content, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
