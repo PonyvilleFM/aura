@@ -62,7 +62,7 @@ func main() {
 	a.cs.AddCmd("printerfact", "shows useful facts about printers", bot.NoPermissions, printerFact)
 	a.cs.AddCmd("hipster", "hip me up fam", bot.NoPermissions, hipster)
 	a.cs.AddCmd("source", "source code information", bot.NoPermissions, source.Source)
-	a.cs.AddCmd("time", "shows the curren bot time", bot.NoPermissions, curTime)
+	a.cs.AddCmd("time", "shows the current bot time", bot.NoPermissions, curTime)
 
 	dg.AddHandler(a.Handle)
 	dg.AddHandler(pesterLink)
