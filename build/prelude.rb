@@ -1,4 +1,4 @@
-from "xena/go:latest"
+from "xena/go:1.7.4"
 
 $repo = "github.com/PonyvilleFM/aura"
 
