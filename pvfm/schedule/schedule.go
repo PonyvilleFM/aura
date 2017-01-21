@@ -34,9 +34,12 @@ type ScheduleEntry struct {
 }
 
 func (s ScheduleEntry) String() string {
+	StartTimeUnix = time.Unix(s.StartUnix);
+	duration = StartTimeUnix.Since(time);
+	
 	return fmt.Sprintf(
-		"At %s %s: %s - %s",
-		s.StartTime, s.Timezone, s.Host, s.Name,
+		"In %d:%2d (%s %s): %s - %s",
+		duration.Hours(), duration.Minutes(), s.StartTime, s.Timezone, s.Host, s.Name,
 	)
 }
 
