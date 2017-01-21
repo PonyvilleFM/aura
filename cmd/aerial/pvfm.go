@@ -186,7 +186,7 @@ func doStatsFromStation(s *discordgo.Session, m *discordgo.Message, parv []strin
 }
 
 func curTime(s *discordgo.Session, m *discordgo.Message, parv []string) error {
-	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("The time currently is %s", time.Now().String()))
+	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("The time currently is %s", time.Now().UTC().Format("2006-01-02 15:04:05 UTC")))
 
 	return nil
 }
