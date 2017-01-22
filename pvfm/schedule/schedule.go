@@ -38,7 +38,7 @@ func (s ScheduleEntry) String() string {
 	dur := startTimeUnix.Sub(time.Now())
 
 	return fmt.Sprintf(
-		"In %v:%v (%v %v): %s - %s",
+		"In %d:%2d (%v %v): %s - %s",
 		int(dur.Hours()), int(dur.Minutes()), s.StartTime, s.Timezone, s.Host, s.Name,
 	)
 }
