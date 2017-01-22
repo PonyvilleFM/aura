@@ -3,8 +3,6 @@ language: go
 go:
   - 1.x
 
-go_import_path: github.com/PonyvilleFM/aura
-
 script:
   - go build github.com/PonyvilleFM/aura/cmd/aura
   - go install github.com/PonyvilleFM/aura/cmd/aura
