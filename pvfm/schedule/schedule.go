@@ -39,7 +39,7 @@ func (s ScheduleEntry) String() string {
 
 	return fmt.Sprintf(
 		"In %v:%v (%v %v): %s - %s",
-		dur.Hours(), dur.Minutes(), s.StartTime, s.Timezone, s.Host, s.Name,
+		int(dur.Hours()), int(dur.Minutes()), s.StartTime, s.Timezone, s.Host, s.Name,
 	)
 }
 
