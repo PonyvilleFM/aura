@@ -83,7 +83,7 @@ func dj(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 		now = cal.Result[1]
 	}
 
-	nowTime := time.Unix(now.StartTime, 0)
+	nowTime := time.Unix(now.StartTime, 0).UTC()
 	zone, _ := nowTime.Zone()
 	fmttime, _ := strftime.Format("%Y-%m-%d %H:%M:%S", nowTime)
 
