@@ -14,7 +14,7 @@ script:
   - go build github.com/PonyvilleFM/aura/cmd/aerial
   - go install github.com/PonyvilleFM/aura/cmd/aerial
   - curl -SsL https://github.com/erikh/box/releases/download/v0.4.1/box-0.4.1.linux.gz -o box.gz
-  - gunzip box.gz && chmod +x ./box && rm box.gz
+  - gunzip box.gz && chmod +x ./box
   - docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD --email $DOCKER_EMAIL
   - ./box --no-tty multi ./build/aerial.rb ./build/aura.rb
   - docker tag pvfm/aerial pvfm/aerial:$TRAVIS_COMMIT
