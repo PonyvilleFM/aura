@@ -17,7 +17,8 @@ script:
   - gunzip box.gz && chmod +x ./box
   - docker pull xena/go:1.7.4
   - docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD --email $DOCKER_EMAIL
-  - ./box --no-tty multi ./build/aerial.rb ./build/aura.rb
+  - ./box --no-tty ./build/aerial.rb
+  - ./box --no-tty ./build/aura.rb
   - docker tag pvfm/aerial pvfm/aerial:$TRAVIS_COMMIT
   - docker tag pvfm/aura pvfm/aura:$TRAVIS_COMMIT
   - docker push pvfm/aerial:$TRAVIS_COMMIT
