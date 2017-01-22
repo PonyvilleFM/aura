@@ -47,18 +47,18 @@ func np(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 
 		return nil
 	} else {
-		result = append(result, ":radio: *Now Playing on PVFM*\n")
+		result = append(result, "📻 **Now Playing on PVFM**\n")
 		
 		result = append(result, fmt.Sprintf(
-			"Main :musical_note: %s\n",
+			"Main 🎵 %s\n",
 			i.Main.Nowplaying,
 		))
 		result = append(result, fmt.Sprintf(
-			"Chill :musical_note: %s\n",
+			"Chill 🎵 %s\n",
 			i.Secondary.Nowplaying,
 		))
 		result = append(result, fmt.Sprintf(
-			"Free! :musical_note: %s",
+			"Free! 🎵 %s",
 			i.MusicOnly.Nowplaying,
 		))
 	}
