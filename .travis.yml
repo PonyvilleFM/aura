@@ -16,7 +16,7 @@ script:
   - curl -SsL https://github.com/erikh/box/releases/download/v0.4.1/box-0.4.1.linux.gz -o box.gz
   - gunzip box.gz && chmod +x ./box && rm box.gz
   - docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD --email $DOCKER_EMAIL
-  - ./box multi ./build/aerial.rb ./build/aura.rb
+  - ./box --no-tty multi ./build/aerial.rb ./build/aura.rb
   - docker tag pvfm/aerial pvfm/aerial:$TRAVIS_COMMIT
   - docker tag pvfm/aura pvfm/aura:$TRAVIS_COMMIT
   - docker push pvfm/aerial:$TRAVIS_COMMIT
