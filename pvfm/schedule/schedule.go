@@ -34,12 +34,12 @@ type ScheduleEntry struct {
 }
 
 func (s ScheduleEntry) String() string {
-	StartTimeUnix = time.Unix(s.StartUnix);
-	duration = StartTimeUnix.Since(time);
-	
+	startTimeUnix := time.Unix(int64(s.StartUnix), 0)
+	dur := startTimeUnix.Sub(time.Now())
+
 	return fmt.Sprintf(
-		"In %d:%2d (%s %s): %s - %s",
-		duration.Hours(), duration.Minutes(), s.StartTime, s.Timezone, s.Host, s.Name,
+		"In %v:%v (%v %v): %s - %s",
+		dur.Hours(), dur.Minutes(), s.StartTime, s.Timezone, s.Host, s.Name,
 	)
 }
 
