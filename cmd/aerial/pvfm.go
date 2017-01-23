@@ -83,15 +83,14 @@ func dj(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 		now = cal.Result[1]
 	}
 
-	nowTime := time.Unix(now.StartTime, 0)
-	zone, offset := nowTime.Zone()
+	nowTime := time.Unix(now.StartTime, 0).UTC()
+	zone, _ := nowTime.Zone()
 	fmttime, _ := strftime.Format("%Y-%m-%d %H:%M:%S", nowTime)
-	offset = offset / 60 / 60
 
-	result = append(result, fmt.Sprintf("Next event: %s at %s \x02%s\x02 (%d)",
+	result = append(result, fmt.Sprintf("Next event: %s at %s \x02%s\x02",
 		now.Title,
 		fmttime,
-		zone, offset,
+		zone,
 	))
 
 	s.ChannelMessageSend(m.ChannelID, strings.Join(result, "\n"))
