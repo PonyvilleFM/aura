@@ -6,6 +6,7 @@ package pvfm
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"regexp"
@@ -71,12 +72,12 @@ func GetStats() (Info, error) {
 
 	// Grab stuff from the internet
 	c := &http.Client{
-		Timeout: time.Duration(time.Second * 15),
+		Timeout: time.Second * 15,
 	}
 
 	resp, err := c.Get("http://ponyvillefm.com/data/nowplaying")
 	if err != nil {
-		return Info{}, err
+		return Info{}, fmt.Errorf("http fetch: %s %d: %v", resp.Status, resp.StatusCode, err)
 	}
 	defer resp.Body.Close()
 
@@ -87,7 +88,7 @@ func GetStats() (Info, error) {
 
 	err = json.Unmarshal(content, &i)
 	if err != nil {
-		return Info{}, err
+		return Info{}, fmt.Errorf("json unmarshal: %v", err)
 	}
 
 	// Update the age/contents of the latestInfo

@@ -139,7 +139,7 @@ func (cs *CommandSet) Run(s *discordgo.Session, msg *discordgo.Message) error {
 		err = cmd.Handler(s, msg, params)
 		if err != nil {
 			log.Printf("command handler error: %v", err)
-			s.ChannelMessageSend(msg.ChannelID, "error: "+err.Error())
+			s.ChannelMessageSend(msg.ChannelID, "error when running that command: "+err.Error())
 			return err
 		}
 	}
