@@ -20,3 +20,7 @@ eb56e89ac5088bebb12eef3cb4b293300f43608b	github.com/dghubble/sling
 45e771701b814666a7eb299e6c7a57d0b1799e91	golang.org/x/net/context
 c406a4cc4ba462e5dc2f16225c5bd9488f9cbe10	golang.org/x/oauth2
 c406a4cc4ba462e5dc2f16225c5bd9488f9cbe10	golang.org/x/oauth2/internal
+62f833fc9f6c4d3223bdb37bd0c2f8951bed8596	github.com/google/gops/agent
+62f833fc9f6c4d3223bdb37bd0c2f8951bed8596	github.com/google/gops/internal
+62f833fc9f6c4d3223bdb37bd0c2f8951bed8596	github.com/google/gops/signal
+c2c54e542fb797ad986b31721e1baedf214ca413	github.com/kardianos/osext
