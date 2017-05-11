@@ -221,7 +221,7 @@ func streams(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 }
 
 func derpi(s *discordgo.Session, m *discordgo.Message, parv []string) error {
-	searchResults, err := derpiSearch.SearchDerpi(m.Content[6:len(m.Content)])
+	searchResults, err := derpiSearch.SearchDerpi(m.Content[7:len(m.Content)])
 	if err != nil {
 		return err
 	}
