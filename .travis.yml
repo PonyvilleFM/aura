@@ -9,9 +9,10 @@ go:
   - 1.8
 
 script:
-  - curl -SsL https://github.com/erikh/box/releases/download/v0.4.2/box-0.4.2.linux.gz -o box.gz
+  - curl -SsL https://github.com/box-builder/box/releases/download/v0.4.2/box-0.4.2.linux.gz -o box.gz
   - ls
   - file box.gz
+  - cat box.gz
   - gunzip box.gz && chmod +x ./box
   - docker pull xena/go-mini:1.8.1
   - docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
