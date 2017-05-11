@@ -13,7 +13,7 @@ script:
   - go install github.com/PonyvilleFM/aura/cmd/aura
   - go build github.com/PonyvilleFM/aura/cmd/aerial
   - go install github.com/PonyvilleFM/aura/cmd/aerial
-  - curl -SsL https://github.com/box-builder/box/releases/download/v0.5.1/box-0.5.1.linux.gz -o box.gz
+  - curl -SsL https://github.com/erikh/box/releases/download/v0.4.1/box-0.4.1.linux.gz -o box.gz
   - gunzip box.gz && chmod +x ./box
   - docker pull xena/go-mini:1.8.1
   - docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
