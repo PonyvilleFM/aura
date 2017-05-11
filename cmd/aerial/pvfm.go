@@ -223,6 +223,7 @@ func streams(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 func derpi(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 	searchResults, err := derpiSearch.SearchDerpi(m.Content[7:len(m.Content)])
 	if err != nil {
+		s.ChannelMessageSend(m.ChannelID, "An error occured.")
 		return err
 	}
 	if len(searchResults.Search) < 1 {

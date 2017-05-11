@@ -56,7 +56,7 @@ type DerpiResults struct {
 func SearchDerpi(query string) (DerpiResults, error) {
 	jsonResults := DerpiResults{}
 	derpiTags := strings.Replace(query, " ", "+", -1)
-	response, err := http.Get("https://derpibooru.org/search.json?q=safe," + derpiTags)
+	response, err := http.Get("https://derpibooru.org/search.json?q=safe+" + derpiTags)
 	if err != nil {
 		return jsonResults, err
 	}
