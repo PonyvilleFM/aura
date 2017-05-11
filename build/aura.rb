@@ -2,7 +2,7 @@ import "build/prelude.rb"
 
 gobuild "cmd/aura"
 
-run %q[ apk add --virtual streamripper-deps --no-cache wget alpine-sdk glib-dev \
+run %q[ apk add --virtual streamripper-deps --no-cache wget build-base glib-dev \
      && mkdir /tmp/streamripper \
      && cd /tmp/streamripper \
      && wget https://xena.greedo.xeserv.us/files/streamripper.tgz \
