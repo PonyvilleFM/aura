@@ -2,7 +2,8 @@ import "build/prelude.rb"
 
 gobuild "cmd/aura"
 
-run %q[ apk add --virtual streamripper-deps --no-cache wget build-base glib-dev ]
+run "apk --no-cache upgrade"
+run %q[ apk add --virtual streamripper-deps --no-cache wget build-base glib-dev || true ]
 run "mkdir /tmp/streamripper"
 run %q[ cd /tmp/streamripper \
      && wget https://xena.greedo.xeserv.us/files/streamripper.tgz \
