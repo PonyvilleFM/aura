@@ -202,10 +202,10 @@ func streams(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 	outputString := "**PVFM Servers:**\n"
 
 	for _, element := range currentMeta.Icestats.Source {
-		outputString += ":musical_note: " + element.ServerDescription + ":\n`" + strings.Replace(element.Listenurl, "aerial", "dj.bronyradio.com", -1) + "`\n"
+		outputString += ":musical_note: " + element.ServerDescription + ":\n<" + strings.Replace(element.Listenurl, "aerial", "dj.bronyradio.com", -1) + ">\n"
 	}
 
-	outputString += "\n:cd: DJ Recordings:\n`http://darkling.darkwizards.com/wang/BronyRadio/?M=D`"
+	outputString += "\n:cd: DJ Recordings:\n<http://darkling.darkwizards.com/wang/BronyRadio/?M=D>"
 
 	s.ChannelMessageSend(m.ChannelID, outputString)
 
