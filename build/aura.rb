@@ -11,7 +11,7 @@ run %q[ cd /tmp/streamripper \
      && cd streamripper-1.64.6 \
      && ./configure && make -j && chmod +x install-sh && make install \
      && rm -rf /tmp/streamripper ]
-run "apk del streamripper-deps && apk add --no-cache glib"
+run "apk del streamripper-deps && apk add --no-cache glib || true"
 
 cleanup
 cmd "/go/src/github.com/PonyvilleFM/aura/run/aura.sh"
