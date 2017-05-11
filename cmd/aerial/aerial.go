@@ -63,6 +63,7 @@ func main() {
 	a.cs.AddCmd("hipster", "hip me up fam", bot.NoPermissions, hipster)
 	a.cs.AddCmd("source", "source code information", bot.NoPermissions, source.Source)
 	a.cs.AddCmd("time", "shows the current bot time", bot.NoPermissions, curTime)
+	a.cs.AddCmd("streams", "shows the different Ponyville FM stream links", bot.NoPermissions, streams)
 
 	dg.AddHandler(a.Handle)
 	dg.AddHandler(pesterLink)

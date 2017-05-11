@@ -48,7 +48,7 @@ func np(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 		return nil
 	} else {
 		result = append(result, "📻 **Now Playing on PVFM**\n")
-		
+
 		result = append(result, fmt.Sprintf(
 			"Main 🎵 %s\n",
 			i.Main.Nowplaying,
@@ -188,6 +188,25 @@ func doStatsFromStation(s *discordgo.Session, m *discordgo.Message, parv []strin
 
 func curTime(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("The time currently is %s", time.Now().UTC().Format("2006-01-02 15:04:05 UTC")))
+
+	return nil
+}
+
+func streams(s *discordgo.Session, m *discordgo.Message, parv []string) error {
+	stats, err := station.GetStats()
+	if err != nil {
+		return err
+	}
+
+	outputString := "PVFM Servers:\n"
+
+	for _, source := range stats.Icestats.Source {
+		outputString += "- " + source.ServerDescription + ": " + strings.Replace(source.Listenurl, "aerial", "dj.bronyradio.com", -1) + "\n"
+	}
+
+	outputString += "\nDJ Recordings: http://darkling.darkwizards.com/wang/BronyRadio/?M=D"
+
+	s.ChannelMessageSend(m.ChannelID, outputString)
 
 	return nil
 }
