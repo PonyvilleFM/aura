@@ -225,6 +225,9 @@ func derpi(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 	if err != nil {
 		return err
 	}
+	if len(searchResults.Search) < 1 {
+		s.ChannelMessageSend(m.ChannelID, "Error: No results")
+	}
 	s.ChannelMessageSend(m.ChannelID, searchResults.Search[randomRange(0, len(searchResults.Search))].Image)
 	return nil
 }
