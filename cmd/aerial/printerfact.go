@@ -20,7 +20,7 @@ func printerFact(s *discordgo.Session, m *discordgo.Message, parv []string) erro
 }
 
 func getPrinterFact() (string, error) {
-	resp, err := http.Get("https://mota.cf")
+	resp, err := http.Get("https://xena.stdlib.com/printerfacts")
 	if err != nil {
 		return "", err
 	}
