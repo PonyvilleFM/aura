@@ -193,18 +193,19 @@ func curTime(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 }
 
 func streams(s *discordgo.Session, m *discordgo.Message, parv []string) error {
-	stats, err := station.GetStats()
-	if err != nil {
-		return err
+	currentMeta, metaErr := station.GetStats()
+	if metaErr != nil {
+		s.ChannelMessageSend(m.ChannelID, "Error receiving pvfm metadata")
+		return metaErr
 	}
 
-	outputString := "PVFM Servers:\n"
+	outputString := "**PVFM Servers:**\n"
 
-	for _, source := range stats.Icestats.Source {
-		outputString += "- " + source.ServerDescription + ": " + strings.Replace(source.Listenurl, "aerial", "dj.bronyradio.com", -1) + "\n"
+	for _, element := range currentMeta.Icestats.Source {
+		outputString += ":musical_note: " + element.ServerDescription + ":\n`" + strings.Replace(element.Listenurl, "aerial", "dj.bronyradio.com", -1) + "`\n"
 	}
 
-	outputString += "\nDJ Recordings: http://darkling.darkwizards.com/wang/BronyRadio/?M=D"
+	outputString += "\n:cd: DJ Recordings:\n`http://darkling.darkwizards.com/wang/BronyRadio/?M=D`"
 
 	s.ChannelMessageSend(m.ChannelID, outputString)
 
