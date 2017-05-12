@@ -65,6 +65,7 @@ func main() {
 	a.cs.AddCmd("time", "shows the current bot time", bot.NoPermissions, curTime)
 	a.cs.AddCmd("streams", "shows the different Ponyville FM stream links", bot.NoPermissions, streams)
 	a.cs.AddCmd("derpi", "grabs a random (safe) image from Derpibooru with the given search results", bot.NoPermissions, derpi)
+	a.cs.AddCmd("techgore", "grabs a random post from /r/techsupportgore for your viewing pleasure", bot.NoPermissions, techgore)
 
 	dg.AddHandler(a.Handle)
 	dg.AddHandler(pesterLink)

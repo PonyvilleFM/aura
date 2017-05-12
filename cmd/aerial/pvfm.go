@@ -224,6 +224,10 @@ func streams(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 }
 
 func derpi(s *discordgo.Session, m *discordgo.Message, parv []string) error {
+	if m.ChannelID != "292755043684450304" {
+		s.ChannelMessageSend(m.ChannelID, "Please use this command only in #diabeetus")
+		return nil
+	}
 	searchResults, err := derpiSearch.SearchDerpi(m.Content[7:len(m.Content)])
 	if err != nil {
 		s.ChannelMessageSend(m.ChannelID, "An error occured.")
@@ -234,5 +238,18 @@ func derpi(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 		return nil
 	}
 	s.ChannelMessageSend(m.ChannelID, "http:"+searchResults.Search[randomRange(0, len(searchResults.Search))].Image)
+	return nil
+}
+
+func techgore(s *discordgo.Session, m *discordgo.Message, parv []string) error {
+	if m.ChannelID != "193740418633039872" {
+		s.ChannelMessageSend(m.ChannelID, "Please use this command only in #nerdery")
+		return nil // only works in #nerdery
+	}
+	results, err := redditSearch("techsupportgore")
+	if err != nil {
+		return err
+	}
+	s.ChannelMessageSend(m.ChannelID, results[randomRange(0, len(results))].URL)
 	return nil
 }
