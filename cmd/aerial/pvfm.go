@@ -16,9 +16,12 @@ import (
 	"github.com/tebeka/strftime"
 )
 
+func init() {
+	rand.Seed(time.Now().Unix())
+}
+
 // randomRange gives a random whole integer between the given integers [min, max)
 func randomRange(min, max int) int {
-	rand.Seed(time.Now().Unix())
 	return rand.Intn(max-min) + min
 }
 
