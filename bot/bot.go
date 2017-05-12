@@ -84,7 +84,7 @@ func NewBasicCommand(verb, helptext string, permissions, handler Handler) Comman
 		},
 		handler:     handler,
 		permissions: permissions,
-		limiter:     rate.NewLimiter(rate.Every(5*time.Second), 0),
+		limiter:     rate.NewLimiter(rate.Every(5*time.Second), 1),
 	}
 }
 
