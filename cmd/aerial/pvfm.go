@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"strings"
 	"time"
 
+	derpiSearch "github.com/PonyvilleFM/aura/cmd/aerial/derpi"
 	"github.com/PonyvilleFM/aura/pvfm"
 	"github.com/PonyvilleFM/aura/pvfm/pvl"
 	pvfmschedule "github.com/PonyvilleFM/aura/pvfm/schedule"
@@ -13,6 +15,15 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/tebeka/strftime"
 )
+
+func init() {
+	rand.Seed(time.Now().Unix())
+}
+
+// randomRange gives a random whole integer between the given integers [min, max)
+func randomRange(min, max int) int {
+	return rand.Intn(max-min) + min
+}
 
 func pesterLink(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if musicLinkRegex.Match([]byte(m.Content)) {
@@ -209,5 +220,19 @@ func streams(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 
 	s.ChannelMessageSend(m.ChannelID, outputString)
 
+	return nil
+}
+
+func derpi(s *discordgo.Session, m *discordgo.Message, parv []string) error {
+	searchResults, err := derpiSearch.SearchDerpi(m.Content[7:len(m.Content)])
+	if err != nil {
+		s.ChannelMessageSend(m.ChannelID, "An error occured.")
+		return err
+	}
+	if len(searchResults.Search) < 1 {
+		s.ChannelMessageSend(m.ChannelID, "Error: No results")
+		return nil
+	}
+	s.ChannelMessageSend(m.ChannelID, "http:"+searchResults.Search[randomRange(0, len(searchResults.Search))].Image)
 	return nil
 }
