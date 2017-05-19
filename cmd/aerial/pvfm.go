@@ -225,7 +225,6 @@ func streams(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 }
 
 func derpi(s *discordgo.Session, m *discordgo.Message, parv []string) error {
-	//if m.ChannelID != "292755043684450304" {
 	if m.ChannelID != string(os.Getenv("DIABEETUSID")) {
 		s.ChannelMessageSend(m.ChannelID, "Please use this command only in #diabeetus")
 		return nil
@@ -244,7 +243,6 @@ func derpi(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 }
 
 func techgore(s *discordgo.Session, m *discordgo.Message, parv []string) error {
-	// if m.ChannelID != "193740418633039872" {
 	if m.ChannelID != string(os.Getenv("NERDERYID")) {
 		s.ChannelMessageSend(m.ChannelID, "Please use this command only in #nerdery")
 		return nil // only works in #nerdery
