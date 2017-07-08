@@ -16,21 +16,26 @@ var (
 	ErrRateLimitExceeded = errors.New("bot: per-command rate limit exceeded")
 )
 
-type Command struct {
+type command struct {
+	aliases  []string
 	verb     string
 	helptext string
 }
 
-func (c *Command) Verb() string {
+func (c *command) Verb() string {
 	return c.verb
 }
 
-func (c *Command) Helptext() string {
+func (c *command) Helptext() string {
 	return c.helptext
 }
 
+// Handler is the type that bot command functions need to implement. Errors
+// should be returned.
 type Handler func(*discordgo.Session, *discordgo.Message, []string) error
 
+// CommandHandler is a generic interface for types that implement a bot
+// command. It is akin to http.Handler, but more comprehensive.
 type CommandHandler interface {
 	Verb() string
 	Helptext() string
@@ -40,7 +45,7 @@ type CommandHandler interface {
 }
 
 type basicCommand struct {
-	*Command
+	*command
 	handler     Handler
 	permissions Handler
 	limiter     *rate.Limiter
@@ -85,7 +90,7 @@ func NewCommand(verb, helptext string, handler, permissions Handler) error {
 // functions supplied as arguments.
 func NewBasicCommand(verb, helptext string, permissions, handler Handler) CommandHandler {
 	return &basicCommand{
-		Command: &Command{
+		command: &command{
 			verb:     verb,
 			helptext: helptext,
 		},
