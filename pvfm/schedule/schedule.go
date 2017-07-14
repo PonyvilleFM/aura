@@ -35,7 +35,8 @@ type ScheduleEntry struct {
 
 func (s ScheduleEntry) String() string {
 	startTimeUnix := time.Unix(int64(s.StartUnix), 0)
-	dur := startTimeUnix.Sub(time.Unix(time.Now().Unix(), 0))
+	nowWithoutNanoseconds := time.Unix(time.Now().Unix(), 0)
+	dur := startTimeUnix.Sub(nowWithoutNanoseconds)
 
 	if dur > 0 {
 		return fmt.Sprintf(
