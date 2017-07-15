@@ -35,12 +35,20 @@ type ScheduleEntry struct {
 
 func (s ScheduleEntry) String() string {
 	startTimeUnix := time.Unix(int64(s.StartUnix), 0)
-	dur := startTimeUnix.Sub(time.Unix(time.Now().Unix(), 0))
+	nowWithoutNanoseconds := time.Unix(time.Now().Unix(), 0)
+	dur := startTimeUnix.Sub(nowWithoutNanoseconds)
 
-	return fmt.Sprintf(
-		"In %s (%v %v): %s - %s",
-		dur, s.StartTime, s.Timezone, s.Host, s.Name,
-	)
+	if dur > 0 {
+		return fmt.Sprintf(
+			"In %s (%v %v): %s - %s",
+			dur, s.StartTime, s.Timezone, s.Host, s.Name,
+		)
+	} else {
+		return fmt.Sprintf(
+			"Now: %s - %s",
+			s.Host, s.Name,
+		)
+	}
 }
 
 var (
