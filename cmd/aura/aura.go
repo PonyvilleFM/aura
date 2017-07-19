@@ -21,6 +21,10 @@ import (
 	hashids "github.com/speps/go-hashids"
 )
 
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
 type aura struct {
 	cs *bot.CommandSet
 	s  *discordgo.Session
@@ -218,7 +222,45 @@ func (a *aura) djon(s *discordgo.Session, m *discordgo.Message, parv []string) e
 		return nil
 	}
 
+	go a.waitAndAnnounce(s, m, a.guildRecordings[gid], gid)
+
 	return nil
+}
+
+func (a *aura) waitAndAnnounce(s *discordgo.Session, m *discordgo.Message, r *rec, gid string) {
+	<-r.Done()
+
+	defer delete(a.guildRecordings, gid)
+
+	fname := r.OutputFilename()
+	parts := strings.Split(fname, "/")
+
+	recurl := fmt.Sprintf("https://%s/var/%s/%s", recordingDomain, parts[1], urlencode(parts[2]))
+	id, err := a.hid.EncodeInt64([]int64{int64(rand.Int())})
+	if err != nil {
+		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("This state should be impossible. Recording saved but unknown short URL: %v", err))
+		return
+	}
+
+	a.state.Shorturls[id] = recurl
+	a.state.Save()
+
+	slink := fmt.Sprintf("https://%s/id/%s", recordingDomain, id)
+
+	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Recording complete (%s): %s", time.Now().Sub(r.StartTime()).String(), slink))
+
+	sn := r.creator
+
+	msg := fmt.Sprintf("New recording by %s: %s", sn, slink)
+	err = announce(msg)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+}
+
+func urlencode(inp string) string {
+	return (&url.URL{Path: inp}).String()
 }
 
 func (a *aura) djoff(s *discordgo.Session, m *discordgo.Message, parv []string) error {
@@ -229,52 +271,18 @@ func (a *aura) djoff(s *discordgo.Session, m *discordgo.Message, parv []string) 
 
 	gid := ch.GuildID
 
-	urlencode := func(inp string) string {
-		return (&url.URL{Path: inp}).String()
-	}
-
 	r, ok := a.guildRecordings[gid]
 	if r == nil || !ok {
 		log.Println(a.guildRecordings)
 		return errors.New("aura: no recording is currently in progress")
 	}
 
-	s.ChannelMessageSend(m.ChannelID, "Finishing recording (waiting 30 seconds)")
-	go func() {
-		if r.Err == nil {
-			time.Sleep(30 * time.Second)
-		}
+	if r.Err == nil {
+		s.ChannelMessageSend(m.ChannelID, "Finishing recording (waiting 30 seconds)")
+		time.Sleep(30 * time.Second)
 
 		r.Cancel()
-		<-r.Done()
-		defer delete(a.guildRecordings, gid)
-
-		fname := r.OutputFilename()
-		parts := strings.Split(fname, "/")
-
-		recurl := fmt.Sprintf("https://%s/var/%s/%s", recordingDomain, parts[1], urlencode(parts[2]))
-		id, err := a.hid.EncodeInt64([]int64{int64(rand.Int())})
-		if err != nil {
-			s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("This state should be impossible. Recording saved but unknown short URL: %v", err))
-			return
-		}
-
-		a.state.Shorturls[id] = recurl
-		a.state.Save()
-
-		slink := fmt.Sprintf("https://%s/id/%s", recordingDomain, id)
-
-		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Recording complete (%s): %s", time.Now().Sub(r.StartTime()).String(), slink))
-
-		sn := r.creator
-
-		msg := fmt.Sprintf("New recording by %s: %s", sn, slink)
-		err = announce(msg)
-		if err != nil {
-			log.Println(err)
-			return
-		}
-	}()
+	}
 
 	return nil
 }
