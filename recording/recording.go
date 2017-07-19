@@ -85,9 +85,12 @@ func (r *Recording) Start() error {
 		t := time.NewTicker(4 * time.Hour)
 		defer t.Stop()
 
+		log.Println("got here")
+
 		for {
 			select {
 			case <-r.ctx.Done():
+				return
 			case <-t.C:
 				log.Printf("Automatically killing recording after 4 hours...")
 				r.Cancel()
@@ -110,7 +113,7 @@ func (r *Recording) Start() error {
 
 		select {
 		case <-r.ctx.Done():
-			return cmd.Process.Signal(os.Interrupt)
+			return nil
 		default:
 		}
 	}
