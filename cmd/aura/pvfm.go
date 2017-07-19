@@ -1,5 +1,3 @@
-// +build pvfm
-
 package main
 
 import (
@@ -8,13 +6,12 @@ import (
 	"time"
 
 	"github.com/PonyvilleFM/aura/pvfm/pvl"
-	"github.com/bwmarrin/discordgo"
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
 )
 
-func genFname(u *discordgo.User) (string, error) {
-	return fmt.Sprintf("%s - %s.mp3", u.Username, time.Now().Format(time.RFC822)), nil
+func genFname(username string) (string, error) {
+	return fmt.Sprintf("%s - %s.mp3", username, time.Now().Format(time.RFC822)), nil
 }
 
 var (

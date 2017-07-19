@@ -162,17 +162,27 @@ func (a *aura) setup(s *discordgo.Session, m *discordgo.Message, parv []string) 
 }
 
 func (a *aura) djon(s *discordgo.Session, m *discordgo.Message, parv []string) error {
-	fname, err := genFname(m.Author)
-	if err != nil {
-		return err
-	}
-
 	ch, err := s.Channel(m.ChannelID)
 	if err != nil {
 		return err
 	}
 
 	gid := ch.GuildID
+	creator := m.Author.Username
+
+	member, err := s.GuildMember(gid, m.Author.ID)
+	if err != nil {
+		return err
+	}
+
+	if member.Nick != "" {
+		creator = member.Nick
+	}
+
+	fname, err := genFname(creator)
+	if err != nil {
+		return err
+	}
 
 	_, ok := a.guildRecordings[gid]
 	if ok {
@@ -189,7 +199,7 @@ func (a *aura) djon(s *discordgo.Session, m *discordgo.Message, parv []string) e
 
 	a.guildRecordings[gid] = &rec{
 		Recording: rr,
-		creator:   m.Author.Username,
+		creator:   creator,
 	}
 
 	go func() {
@@ -212,7 +222,7 @@ func (a *aura) djon(s *discordgo.Session, m *discordgo.Message, parv []string) e
 
 	invurl := "http://discord.gg/" + inv.Code
 
-	err = announce("Live DJ on-air: " + m.Author.Username + "\nJoin our chat here: " + invurl)
+	err = announce("Live DJ on-air: " + creator + "\nJoin our chat here: " + invurl)
 	if err != nil {
 		log.Println(err)
 		return nil
