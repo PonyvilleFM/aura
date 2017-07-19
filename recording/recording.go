@@ -69,7 +69,7 @@ func (r *Recording) Start() error {
 		return err
 	}
 
-	cmd := exec.Command(sr, r.url, "-A", "-a", r.fname)
+	cmd := exec.CommandContext(r.ctx, sr, r.url, "-A", "-a", r.fname)
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
 
@@ -79,6 +79,21 @@ func (r *Recording) Start() error {
 	if err != nil {
 		return err
 	}
+
+	// Automatically kill recordings after four hours
+	go func() {
+		t := time.NewTicker(4 * time.Hour)
+		defer t.Stop()
+
+		for {
+			select {
+			case <-r.ctx.Done():
+			case <-t.C:
+				log.Printf("Automatically killing recording after 4 hours...")
+				r.Cancel()
+			}
+		}
+	}()
 
 	go func() {
 		defer r.Cancel()
