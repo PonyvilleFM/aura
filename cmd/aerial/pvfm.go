@@ -219,7 +219,7 @@ func streams(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 	outputString += "**Luna Radio Servers:**\n"
 	outputString += "\n:musical_note: Luna Radio MP3 128Kbps Stream:\n<http://radio.ponyvillelive.com:8002/stream.mp3>\n:musical_note: Luna Radio Mobile MP3 64Kbps Stream:\n<http://radio.ponyvillelive.com:8002/mobile?;stream.mp3>\n"
 
-	outputString += "\n:cd: DJ Recordings:\n<https://pvfmsets.cf/var/93252527679639552/>9" + "\n:cd: Legacy DJ Recordings:\n<http://darkling.darkwizards.com/wang/BronyRadio/?M=D>"
+	outputString += "\n:cd: DJ Recordings:\n<https://pvfmsets.cf/var/93252527679639552/>" + "\n:cd: Legacy DJ Recordings:\n<http://darkling.darkwizards.com/wang/BronyRadio/?M=D>"
 
 	s.ChannelMessageSend(m.ChannelID, outputString)
 
