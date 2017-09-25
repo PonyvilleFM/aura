@@ -216,7 +216,7 @@ func streams(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 		outputString += ":musical_note: " + element.ServerDescription + ":\n<" + strings.Replace(element.Listenurl, "aerial", "dj.bronyradio.com", -1) + ">\n"
 	}
 
-	outputString += "\n:cd: DJ Recordings:\n<http://darkling.darkwizards.com/wang/BronyRadio/?M=D>"
+	outputString += "\n:cd: DJ Recordings:\n<https://pvfmsets.cf/var/93252527679639552/>9" + "\n:cd: Legacy DJ Recordings:\n<http://darkling.darkwizards.com/wang/BronyRadio/?M=D>"
 
 	s.ChannelMessageSend(m.ChannelID, outputString)
 
