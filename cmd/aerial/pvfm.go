@@ -210,19 +210,29 @@ func streams(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 		return metaErr
 	}
 
-	outputString := "**PVFM Servers:**\n"
+	// start building custom embed
+	outputEmbed := NewEmbed().
+		SetTitle("Stream Links").
+		SetDescription("These are direct feeds of the live streams; most browsers and media players can play them!")
 
+		// this will dynamically build the list from station metadata
+		pvfmList := ""
 	for _, element := range currentMeta.Icestats.Source {
-		outputString += ":musical_note: " + element.ServerDescription + ":\n<" + strings.Replace(element.Listenurl, "aerial", "dj.bronyradio.com", -1) + ">\n"
+		pvfmList += ":musical_note: " + element.ServerDescription + ":\n<" + strings.Replace(element.Listenurl, "aerial", "dj.bronyradio.com", -1) + ">\n"
 	}
 
-	outputString += "\n**Luna Radio Servers:**\n"
-	outputString += ":musical_note: Luna Radio MP3 128Kbps Stream:\n<http://radio.ponyvillelive.com:8002/stream.mp3>\n:musical_note: Luna Radio Mobile MP3 64Kbps Stream:\n<http://radio.ponyvillelive.com:8002/mobile?;stream.mp3>\n"
+	// PVFM
+	outputEmbed.AddField("PVFM Servers", pvfmList)
+	// Luna Radio
+	outputEmbed.AddField("Luna Radio Servers", ":musical_note: Luna Radio MP3 128Kbps Stream:\n<http://radio.ponyvillelive.com:8002/stream.mp3>\n:musical_note: Luna Radio Mobile MP3 64Kbps Stream:\n<http://radio.ponyvillelive.com:8002/mobile?;stream.mp3>\n")
+	// Recordings
+	outputEmbed.AddField(":cd: DJ Recordings", "<https://pvfmsets.cf/var/93252527679639552/>")
+	// Legacy Recordings
+	outputEmbed.AddField(":cd: Legacy DJ Recordings", "<http://darkling.darkwizards.com/wang/BronyRadio/?M=D>")
 
-	outputString += "\n:cd: DJ Recordings:\n<https://pvfmsets.cf/var/93252527679639552/>" + "\n:cd: Legacy DJ Recordings:\n<http://darkling.darkwizards.com/wang/BronyRadio/?M=D>"
+	s.ChannelMessageSendEmbed(m.ChannelID, outputEmbed.MessageEmbed)
 
-	s.ChannelMessageSend(m.ChannelID, outputString)
-
+	// no errors yay!!!!
 	return nil
 }
 
