@@ -218,7 +218,7 @@ func streams(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 		// this will dynamically build the list from station metadata
 		pvfmList := ""
 	for _, element := range currentMeta.Icestats.Source {
-		pvfmList += ":musical_note: " + element.ServerDescription + ":\n<" + strings.Replace(element.Listenurl, "aerial", "dj.bronyradio.com", -1) + ">\n"
+		pvfmList += element.ServerDescription + ":\n<" + strings.Replace(element.Listenurl, "aerial", "dj.bronyradio.com", -1) + ">\n"
 	}
 
 	// PVFM
