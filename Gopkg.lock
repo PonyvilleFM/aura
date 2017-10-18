@@ -1,0 +1,115 @@
+memo = "52ce50a1cf1f68e6100d2921dca41ff86bcda87b774b6b3c66f2e59165cffaa1"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/Pallinder/go-randomdata"
+  packages = ["."]
+  revision = "104cc800bd6434e70cb0c3ad08c4541f4f2eb48b"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/Sirupsen/logrus"
+  packages = ["."]
+  revision = "9b48ece7fc373043054858f8c0d362665e866004"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/bwmarrin/discordgo"
+  packages = ["."]
+  revision = "5835676872d7fa65ee37b32672079c4ede2c1855"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/cenkalti/backoff"
+  packages = ["."]
+  revision = "b02f2bbce11d7ea6b97f282ef1771b0fe2f65ef3"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/dghubble/go-twitter"
+  packages = ["twitter"]
+  revision = "4522457ad39f70da4f2c28f8e2b6d05895562064"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/dghubble/oauth1"
+  packages = ["."]
+  revision = "67de46873d807fffa7cd47fdae2531e23a8e994c"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/dghubble/sling"
+  packages = ["."]
+  revision = "eb56e89ac5088bebb12eef3cb4b293300f43608b"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/google/go-querystring"
+  packages = ["query"]
+  revision = "53e6ce116135b80d037921a7fdd5138cf32d7a8a"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/google/gops"
+  packages = ["agent","internal","signal"]
+  revision = "62f833fc9f6c4d3223bdb37bd0c2f8951bed8596"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/gorilla/websocket"
+  packages = ["."]
+  revision = "a91eba7f97777409bc2c443f5534d41dd20c5720"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/joho/godotenv"
+  packages = [".","autoload"]
+  revision = "325433c502d409f3c3dc820098fb0cfe38d98dc7"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/kardianos/osext"
+  packages = ["."]
+  revision = "c2c54e542fb797ad986b31721e1baedf214ca413"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/paddycarey/gophy"
+  packages = ["."]
+  revision = "8eaf59696ea40194d680e6c2d8e6e7c609f2836c"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/speps/go-hashids"
+  packages = ["."]
+  revision = "5527803966822002f346cda9e8852cde0139e84c"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/tebeka/strftime"
+  packages = ["."]
+  revision = "3f9c7761e3124a331848c11a2f168afd8b105d9f"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/crypto"
+  packages = ["nacl/secretbox","poly1305","salsa20/salsa"]
+  revision = "dd85ac7e6a88fc6ca420478e934de5f1a42dd3c6"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/net"
+  packages = ["context"]
+  revision = "66aacef3dd8a676686c7ae3716979581e8b03c47"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/sys"
+  packages = ["unix"]
+  revision = "9ccfe848b9db8435a24c424abbc07a921adf1df5"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/time"
+  packages = ["rate"]
+  revision = "8be79e1e0910c292df4e79c241bb7e8f7e725959"

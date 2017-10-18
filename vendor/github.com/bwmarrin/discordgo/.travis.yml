@@ -1,0 +1,13 @@
+language: go
+go:
+    - 1.6
+    - 1.7
+install:
+    - go get github.com/bwmarrin/discordgo
+    - go get -v .
+    - go get -v github.com/golang/lint/golint
+script:
+    - diff <(gofmt -d .) <(echo -n)
+    - go vet -x ./...
+    - golint ./...
+    - go test -v -race ./...

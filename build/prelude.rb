@@ -27,7 +27,6 @@ folders = [
   "recording",
   "run",
   "vendor",
-  "vendor-log"
 ]
 
 folders.each { |x| foldercopy x }

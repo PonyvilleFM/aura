@@ -1,0 +1,44 @@
+
+[[dependencies]]
+  branch = "master"
+  name = "github.com/Pallinder/go-randomdata"
+
+[[dependencies]]
+  branch = "master"
+  name = "github.com/Sirupsen/logrus"
+
+[[dependencies]]
+  branch = "master"
+  name = "github.com/bwmarrin/discordgo"
+
+[[dependencies]]
+  branch = "master"
+  name = "github.com/dghubble/go-twitter"
+
+[[dependencies]]
+  branch = "master"
+  name = "github.com/dghubble/oauth1"
+
+[[dependencies]]
+  branch = "master"
+  name = "github.com/google/gops"
+
+[[dependencies]]
+  branch = "master"
+  name = "github.com/joho/godotenv"
+
+[[dependencies]]
+  branch = "master"
+  name = "github.com/paddycarey/gophy"
+
+[[dependencies]]
+  branch = "master"
+  name = "github.com/speps/go-hashids"
+
+[[dependencies]]
+  branch = "master"
+  name = "github.com/tebeka/strftime"
+
+[[dependencies]]
+  branch = "master"
+  name = "golang.org/x/time"
