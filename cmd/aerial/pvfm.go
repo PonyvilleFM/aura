@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	derpiSearch "github.com/PonyvilleFM/aura/cmd/aerial/derpi"
+	derpiSearch "./derpi"
 	"github.com/PonyvilleFM/aura/pvfm"
 	"github.com/PonyvilleFM/aura/pvfm/pvl"
 	pvfmschedule "github.com/PonyvilleFM/aura/pvfm/schedule"
