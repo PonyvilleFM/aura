@@ -55,7 +55,7 @@ type DerpiResults struct {
 }
 
 // Perform a Derpibooru search query with a given string of tags and an API key
-func DerpiSearchWithTags(tags string, key string) (DerpiResults, error) {
+func SearchDerpi(tags string, key string) (DerpiResults, error) {
 
 	// format for URL query
 	derpiTags := strings.Replace(tags, " ", "+", -1)

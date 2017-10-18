@@ -237,7 +237,7 @@ func streams(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 }
 
 func derpi(s *discordgo.Session, m *discordgo.Message, parv []string) error {
-	searchResults, err := derpiSearch.DerpiSearchWithTags(m.Content[7:len(m.Content)], "") // no api key needed, we only search safe images!
+	searchResults, err := derpiSearch.SearchDerpi(m.Content[7:len(m.Content)], "") // no api key needed, we only search safe images!
 	if err != nil {
 		s.ChannelMessageSend(m.ChannelID, "An error occured.")
 		return err
