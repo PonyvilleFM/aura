@@ -222,13 +222,11 @@ func streams(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 	}
 
 	// PVFM
-	outputEmbed.AddField("PVFM Servers", pvfmList)
+	outputEmbed.AddField(":musical_note:  PVFM Servers", pvfmList)
 	// Luna Radio
-	outputEmbed.AddField("Luna Radio Servers", ":musical_note: Luna Radio MP3 128Kbps Stream:\n<http://radio.ponyvillelive.com:8002/stream.mp3>\n:musical_note: Luna Radio Mobile MP3 64Kbps Stream:\n<http://radio.ponyvillelive.com:8002/mobile?;stream.mp3>\n")
+	outputEmbed.AddField(":musical_note:  Luna Radio Servers", "Luna Radio MP3 128Kbps Stream:\n<http://radio.ponyvillelive.com:8002/stream.mp3>\nLuna Radio Mobile MP3 64Kbps Stream:\n<http://radio.ponyvillelive.com:8002/mobile?;stream.mp3>\n")
 	// Recordings
-	outputEmbed.AddField(":cd: DJ Recordings", "<https://pvfmsets.cf/var/93252527679639552/>")
-	// Legacy Recordings
-	outputEmbed.AddField(":cd: Legacy DJ Recordings", "<http://darkling.darkwizards.com/wang/BronyRadio/?M=D>")
+	outputEmbed.AddField(":cd:  DJ Recordings", "Archive\n<https://pvfmsets.cf/var/93252527679639552/>\nLegacy Archive\n<http://darkling.darkwizards.com/wang/BronyRadio/?M=D>")
 
 	s.ChannelMessageSendEmbed(m.ChannelID, outputEmbed.MessageEmbed)
 
