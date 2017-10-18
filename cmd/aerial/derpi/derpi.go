@@ -55,16 +55,13 @@ type DerpiResults struct {
 }
 
 // Perform a Derpibooru search query with a given string of tags and an API key
-func SearchDerpi(tags string, key string) (DerpiResults, error) {
+func SearchDerpi(tags string) (DerpiResults, error) {
 
 	// format for URL query
 	derpiTags := strings.Replace(tags, " ", "+", -1)
 
 	// make URL query
 	urlQuery := "https://derpibooru.org/search.json?q=" + derpiTags
-	if key != "" {
-		urlQuery += "&key=" + key
-	}
 	resp, err := http.Get(urlQuery)
 	if err != nil {
 		return DerpiResults{}, fmt.Errorf("Failed with HTTP error.")
