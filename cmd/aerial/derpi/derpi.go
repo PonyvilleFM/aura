@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 	"time"
+	"fmt"
 )
 
 // DerpiResults is a struct to contain Derpibooru search results
@@ -53,23 +54,36 @@ type DerpiResults struct {
 	Interactions []interface{} `json:"interactions"`
 }
 
-func SearchDerpi(query string) (DerpiResults, error) {
-	jsonResults := DerpiResults{}
-	derpiTags := strings.Replace(query, " ", "+", -1)
-	response, err := http.Get("https://derpibooru.org/search.json?q=safe," + derpiTags)
-	if err != nil {
-		return jsonResults, err
-	}
-	defer response.Body.Close()
+// Perform a Derpibooru search query with a given string of tags and an API key
+func SearchDerpi(tags string, key string) (DerpiResults, error) {
 
-	derpiBody, err := ioutil.ReadAll(response.Body)
+	// format for URL query
+	derpiTags := strings.Replace(tags, " ", "+", -1)
+
+	// make URL query
+	urlQuery := "https://derpibooru.org/search.json?q=" + derpiTags
+	if key != "" {
+		urlQuery += "&key=" + key
+	}
+	resp, err := http.Get(urlQuery)
 	if err != nil {
-		return jsonResults, err
+		return DerpiResults{}, fmt.Errorf("Failed with HTTP error.")
 	}
 
-	jsonErr := json.Unmarshal(derpiBody, &jsonResults)
-	if jsonErr != nil {
-		return jsonResults, jsonErr
+	// read response body
+	defer resp.Body.Close()
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return DerpiResults{}, fmt.Errorf("Failed with error reading response body.")
 	}
-	return jsonResults, nil
+
+	// parse json
+	results := DerpiResults{}
+	err = json.Unmarshal(respBody, &results)
+	if err != nil {
+		return DerpiResults{}, fmt.Errorf("Failed with JSON parsing error.")
+	}
+
+	return results, nil
+
 }
