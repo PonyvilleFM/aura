@@ -214,7 +214,7 @@ func (a *aura) djon(s *discordgo.Session, m *discordgo.Message, parv []string) e
 		}
 	}()
 
-	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Now recording: `%s`", fname))
+	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Now recording: `%s`\n\n%s get in here fam", fname, os.Getenv("NOTIFICATION_SQUAD_ID")))
 
 	inv, err := s.ChannelInviteCreate(gid, discordgo.Invite{
 		MaxAge: 4800,
