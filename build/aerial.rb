@@ -4,5 +4,5 @@ gobuild "cmd/aerial"
 
 cleanup
 
-cmd "/go/bin/aerial"
+cmd "/aerial"
 tag "pvfm/aerial"
