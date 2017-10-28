@@ -14,11 +14,16 @@ package discordgo
 
 import (
 	"errors"
+	"sort"
 	"sync"
 )
 
 // ErrNilState is returned when the state is nil.
-var ErrNilState = errors.New("State not instantiated, please use discordgo.New() or assign Session.State.")
+var ErrNilState = errors.New("state not instantiated, please use discordgo.New() or assign Session.State")
+
+// ErrStateNotFound is returned when the state cache
+// requested is not found
+var ErrStateNotFound = errors.New("state cache not found")
 
 // A State contains the current known state.
 // As discord sends this in a READY blob, it seems reasonable to simply
@@ -33,9 +38,11 @@ type State struct {
 	TrackMembers    bool
 	TrackRoles      bool
 	TrackVoice      bool
+	TrackPresences  bool
 
 	guildMap   map[string]*Guild
 	channelMap map[string]*Channel
+	memberMap  map[string]map[string]*Member
 }
 
 // NewState creates an empty state.
@@ -45,14 +52,24 @@ func NewState() *State {
 			PrivateChannels: []*Channel{},
 			Guilds:          []*Guild{},
 		},
-		TrackChannels: true,
-		TrackEmojis:   true,
-		TrackMembers:  true,
-		TrackRoles:    true,
-		TrackVoice:    true,
-		guildMap:      make(map[string]*Guild),
-		channelMap:    make(map[string]*Channel),
+		TrackChannels:  true,
+		TrackEmojis:    true,
+		TrackMembers:   true,
+		TrackRoles:     true,
+		TrackVoice:     true,
+		TrackPresences: true,
+		guildMap:       make(map[string]*Guild),
+		channelMap:     make(map[string]*Channel),
+		memberMap:      make(map[string]map[string]*Member),
 	}
+}
+
+func (s *State) createMemberMap(guild *Guild) {
+	members := make(map[string]*Member)
+	for _, m := range guild.Members {
+		members[m.User.ID] = m
+	}
+	s.memberMap[guild.ID] = members
 }
 
 // GuildAdd adds a guild to the current world state, or
@@ -68,6 +85,14 @@ func (s *State) GuildAdd(guild *Guild) error {
 	// Update the channels to point to the right guild, adding them to the channelMap as we go
 	for _, c := range guild.Channels {
 		s.channelMap[c.ID] = c
+	}
+
+	// If this guild contains a new member slice, we must regenerate the member map so the pointers stay valid
+	if guild.Members != nil {
+		s.createMemberMap(guild)
+	} else if _, ok := s.memberMap[guild.ID]; !ok {
+		// Even if we have no new member slice, we still initialize the member map for this guild if it doesn't exist
+		s.memberMap[guild.ID] = make(map[string]*Member)
 	}
 
 	if g, ok := s.guildMap[guild.ID]; ok {
@@ -143,7 +168,108 @@ func (s *State) Guild(guildID string) (*Guild, error) {
 		return g, nil
 	}
 
-	return nil, errors.New("Guild not found.")
+	return nil, ErrStateNotFound
+}
+
+// PresenceAdd adds a presence to the current world state, or
+// updates it if it already exists.
+func (s *State) PresenceAdd(guildID string, presence *Presence) error {
+	if s == nil {
+		return ErrNilState
+	}
+
+	guild, err := s.Guild(guildID)
+	if err != nil {
+		return err
+	}
+
+	s.Lock()
+	defer s.Unlock()
+
+	for i, p := range guild.Presences {
+		if p.User.ID == presence.User.ID {
+			//guild.Presences[i] = presence
+
+			//Update status
+			guild.Presences[i].Game = presence.Game
+			guild.Presences[i].Roles = presence.Roles
+			if presence.Status != "" {
+				guild.Presences[i].Status = presence.Status
+			}
+			if presence.Nick != "" {
+				guild.Presences[i].Nick = presence.Nick
+			}
+
+			//Update the optionally sent user information
+			//ID Is a mandatory field so you should not need to check if it is empty
+			guild.Presences[i].User.ID = presence.User.ID
+
+			if presence.User.Avatar != "" {
+				guild.Presences[i].User.Avatar = presence.User.Avatar
+			}
+			if presence.User.Discriminator != "" {
+				guild.Presences[i].User.Discriminator = presence.User.Discriminator
+			}
+			if presence.User.Email != "" {
+				guild.Presences[i].User.Email = presence.User.Email
+			}
+			if presence.User.Token != "" {
+				guild.Presences[i].User.Token = presence.User.Token
+			}
+			if presence.User.Username != "" {
+				guild.Presences[i].User.Username = presence.User.Username
+			}
+
+			return nil
+		}
+	}
+
+	guild.Presences = append(guild.Presences, presence)
+	return nil
+}
+
+// PresenceRemove removes a presence from the current world state.
+func (s *State) PresenceRemove(guildID string, presence *Presence) error {
+	if s == nil {
+		return ErrNilState
+	}
+
+	guild, err := s.Guild(guildID)
+	if err != nil {
+		return err
+	}
+
+	s.Lock()
+	defer s.Unlock()
+
+	for i, p := range guild.Presences {
+		if p.User.ID == presence.User.ID {
+			guild.Presences = append(guild.Presences[:i], guild.Presences[i+1:]...)
+			return nil
+		}
+	}
+
+	return ErrStateNotFound
+}
+
+// Presence gets a presence by ID from a guild.
+func (s *State) Presence(guildID, userID string) (*Presence, error) {
+	if s == nil {
+		return nil, ErrNilState
+	}
+
+	guild, err := s.Guild(guildID)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, p := range guild.Presences {
+		if p.User.ID == userID {
+			return p, nil
+		}
+	}
+
+	return nil, ErrStateNotFound
 }
 
 // TODO: Consider moving Guild state update methods onto *Guild.
@@ -163,14 +289,19 @@ func (s *State) MemberAdd(member *Member) error {
 	s.Lock()
 	defer s.Unlock()
 
-	for i, m := range guild.Members {
-		if m.User.ID == member.User.ID {
-			guild.Members[i] = member
-			return nil
-		}
+	members, ok := s.memberMap[member.GuildID]
+	if !ok {
+		return ErrStateNotFound
 	}
 
-	guild.Members = append(guild.Members, member)
+	m, ok := members[member.User.ID]
+	if !ok {
+		members[member.User.ID] = member
+		guild.Members = append(guild.Members, member)
+	} else {
+		*m = *member // Update the actual data, which will also update the member pointer in the slice
+	}
+
 	return nil
 }
 
@@ -188,6 +319,17 @@ func (s *State) MemberRemove(member *Member) error {
 	s.Lock()
 	defer s.Unlock()
 
+	members, ok := s.memberMap[member.GuildID]
+	if !ok {
+		return ErrStateNotFound
+	}
+
+	_, ok = members[member.User.ID]
+	if !ok {
+		return ErrStateNotFound
+	}
+	delete(members, member.User.ID)
+
 	for i, m := range guild.Members {
 		if m.User.ID == member.User.ID {
 			guild.Members = append(guild.Members[:i], guild.Members[i+1:]...)
@@ -195,7 +337,7 @@ func (s *State) MemberRemove(member *Member) error {
 		}
 	}
 
-	return errors.New("Member not found.")
+	return ErrStateNotFound
 }
 
 // Member gets a member by ID from a guild.
@@ -204,21 +346,20 @@ func (s *State) Member(guildID, userID string) (*Member, error) {
 		return nil, ErrNilState
 	}
 
-	guild, err := s.Guild(guildID)
-	if err != nil {
-		return nil, err
-	}
-
 	s.RLock()
 	defer s.RUnlock()
 
-	for _, m := range guild.Members {
-		if m.User.ID == userID {
-			return m, nil
-		}
+	members, ok := s.memberMap[guildID]
+	if !ok {
+		return nil, ErrStateNotFound
 	}
 
-	return nil, errors.New("Member not found.")
+	m, ok := members[userID]
+	if ok {
+		return m, nil
+	}
+
+	return nil, ErrStateNotFound
 }
 
 // RoleAdd adds a role to the current world state, or
@@ -268,7 +409,7 @@ func (s *State) RoleRemove(guildID, roleID string) error {
 		}
 	}
 
-	return errors.New("Role not found.")
+	return ErrStateNotFound
 }
 
 // Role gets a role by ID from a guild.
@@ -291,10 +432,10 @@ func (s *State) Role(guildID, roleID string) (*Role, error) {
 		}
 	}
 
-	return nil, errors.New("Role not found.")
+	return nil, ErrStateNotFound
 }
 
-// ChannelAdd adds a guild to the current world state, or
+// ChannelAdd adds a channel to the current world state, or
 // updates it if it already exists.
 // Channels may exist either as PrivateChannels or inside
 // a guild.
@@ -319,12 +460,12 @@ func (s *State) ChannelAdd(channel *Channel) error {
 		return nil
 	}
 
-	if channel.IsPrivate {
+	if channel.Type == ChannelTypeDM || channel.Type == ChannelTypeGroupDM {
 		s.PrivateChannels = append(s.PrivateChannels, channel)
 	} else {
 		guild, ok := s.guildMap[channel.GuildID]
 		if !ok {
-			return errors.New("Guild for channel not found.")
+			return ErrStateNotFound
 		}
 
 		guild.Channels = append(guild.Channels, channel)
@@ -346,7 +487,7 @@ func (s *State) ChannelRemove(channel *Channel) error {
 		return err
 	}
 
-	if channel.IsPrivate {
+	if channel.Type == ChannelTypeDM || channel.Type == ChannelTypeGroupDM {
 		s.Lock()
 		defer s.Unlock()
 
@@ -403,7 +544,7 @@ func (s *State) Channel(channelID string) (*Channel, error) {
 		return c, nil
 	}
 
-	return nil, errors.New("Channel not found.")
+	return nil, ErrStateNotFound
 }
 
 // Emoji returns an emoji for a guild and emoji id.
@@ -426,7 +567,7 @@ func (s *State) Emoji(guildID, emojiID string) (*Emoji, error) {
 		}
 	}
 
-	return nil, errors.New("Emoji not found.")
+	return nil, ErrStateNotFound
 }
 
 // EmojiAdd adds an emoji to the current world state.
@@ -523,7 +664,12 @@ func (s *State) MessageRemove(message *Message) error {
 		return ErrNilState
 	}
 
-	c, err := s.Channel(message.ChannelID)
+	return s.messageRemoveByID(message.ChannelID, message.ID)
+}
+
+// messageRemoveByID removes a message by channelID and messageID from the world state.
+func (s *State) messageRemoveByID(channelID, messageID string) error {
+	c, err := s.Channel(channelID)
 	if err != nil {
 		return err
 	}
@@ -532,13 +678,13 @@ func (s *State) MessageRemove(message *Message) error {
 	defer s.Unlock()
 
 	for i, m := range c.Messages {
-		if m.ID == message.ID {
+		if m.ID == messageID {
 			c.Messages = append(c.Messages[:i], c.Messages[i+1:]...)
 			return nil
 		}
 	}
 
-	return errors.New("Message not found.")
+	return ErrStateNotFound
 }
 
 func (s *State) voiceStateUpdate(update *VoiceStateUpdate) error {
@@ -592,7 +738,7 @@ func (s *State) Message(channelID, messageID string) (*Message, error) {
 		}
 	}
 
-	return nil, errors.New("Message not found.")
+	return nil, ErrStateNotFound
 }
 
 // OnReady takes a Ready event and updates all internal state.
@@ -608,10 +754,9 @@ func (s *State) onReady(se *Session, r *Ready) (err error) {
 	// if state is disabled, store the bare essentials.
 	if !se.StateEnabled {
 		ready := Ready{
-			Version:           r.Version,
-			SessionID:         r.SessionID,
-			HeartbeatInterval: r.HeartbeatInterval,
-			User:              r.User,
+			Version:   r.Version,
+			SessionID: r.SessionID,
+			User:      r.User,
 		}
 
 		s.Ready = ready
@@ -623,6 +768,7 @@ func (s *State) onReady(se *Session, r *Ready) (err error) {
 
 	for _, g := range s.Guilds {
 		s.guildMap[g.ID] = g
+		s.createMemberMap(g)
 
 		for _, c := range g.Channels {
 			s.channelMap[c.ID] = c
@@ -636,8 +782,8 @@ func (s *State) onReady(se *Session, r *Ready) (err error) {
 	return nil
 }
 
-// onInterface handles all events related to states.
-func (s *State) onInterface(se *Session, i interface{}) (err error) {
+// OnInterface handles all events related to states.
+func (s *State) OnInterface(se *Session, i interface{}) (err error) {
 	if s == nil {
 		return ErrNilState
 	}
@@ -710,10 +856,55 @@ func (s *State) onInterface(se *Session, i interface{}) (err error) {
 		if s.MaxMessageCount != 0 {
 			err = s.MessageRemove(t.Message)
 		}
+	case *MessageDeleteBulk:
+		if s.MaxMessageCount != 0 {
+			for _, mID := range t.Messages {
+				s.messageRemoveByID(t.ChannelID, mID)
+			}
+		}
 	case *VoiceStateUpdate:
 		if s.TrackVoice {
 			err = s.voiceStateUpdate(t)
 		}
+	case *PresenceUpdate:
+		if s.TrackPresences {
+			s.PresenceAdd(t.GuildID, &t.Presence)
+		}
+		if s.TrackMembers {
+			if t.Status == StatusOffline {
+				return
+			}
+
+			var m *Member
+			m, err = s.Member(t.GuildID, t.User.ID)
+
+			if err != nil {
+				// Member not found; this is a user coming online
+				m = &Member{
+					GuildID: t.GuildID,
+					Nick:    t.Nick,
+					User:    t.User,
+					Roles:   t.Roles,
+				}
+
+			} else {
+
+				if t.Nick != "" {
+					m.Nick = t.Nick
+				}
+
+				if t.User.Username != "" {
+					m.User.Username = t.User.Username
+				}
+
+				// PresenceUpdates always contain a list of roles, so there's no need to check for an empty list here
+				m.Roles = t.Roles
+
+			}
+
+			err = s.MemberAdd(m)
+		}
+
 	}
 
 	return
@@ -747,48 +938,46 @@ func (s *State) UserChannelPermissions(userID, channelID string) (apermissions i
 		return
 	}
 
-	for _, role := range guild.Roles {
-		if role.ID == guild.ID {
-			apermissions |= role.Permissions
-			break
-		}
+	return memberPermissions(guild, channel, member), nil
+}
+
+// UserColor returns the color of a user in a channel.
+// While colors are defined at a Guild level, determining for a channel is more useful in message handlers.
+// 0 is returned in cases of error, which is the color of @everyone.
+// userID    : The ID of the user to calculate the color for.
+// channelID   : The ID of the channel to calculate the color for.
+func (s *State) UserColor(userID, channelID string) int {
+	if s == nil {
+		return 0
 	}
 
-	for _, role := range guild.Roles {
+	channel, err := s.Channel(channelID)
+	if err != nil {
+		return 0
+	}
+
+	guild, err := s.Guild(channel.GuildID)
+	if err != nil {
+		return 0
+	}
+
+	member, err := s.Member(guild.ID, userID)
+	if err != nil {
+		return 0
+	}
+
+	roles := Roles(guild.Roles)
+	sort.Sort(roles)
+
+	for _, role := range roles {
 		for _, roleID := range member.Roles {
 			if role.ID == roleID {
-				apermissions |= role.Permissions
-				break
+				if role.Color != 0 {
+					return role.Color
+				}
 			}
 		}
 	}
 
-	if apermissions&PermissionAdministrator > 0 {
-		apermissions |= PermissionAll
-	}
-
-	// Member overwrites can override role overrides, so do two passes
-	for _, overwrite := range channel.PermissionOverwrites {
-		for _, roleID := range member.Roles {
-			if overwrite.Type == "role" && roleID == overwrite.ID {
-				apermissions &= ^overwrite.Deny
-				apermissions |= overwrite.Allow
-				break
-			}
-		}
-	}
-
-	for _, overwrite := range channel.PermissionOverwrites {
-		if overwrite.Type == "member" && overwrite.ID == userID {
-			apermissions &= ^overwrite.Deny
-			apermissions |= overwrite.Allow
-			break
-		}
-	}
-
-	if apermissions&PermissionAdministrator > 0 {
-		apermissions |= PermissionAllChannel
-	}
-
-	return
+	return 0
 }

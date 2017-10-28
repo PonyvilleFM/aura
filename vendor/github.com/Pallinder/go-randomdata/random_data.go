@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"net"
 	"strconv"
 	"strings"
 	"time"
@@ -29,6 +30,11 @@ const (
 	ThreeCharCountry = 2
 )
 
+const (
+	DateInputLayout  = "2006-01-02"
+	DateOutputLayout = "Monday 2 Jan 2006"
+)
+
 type jsonContent struct {
 	Adjectives          []string `json:adjectives`
 	Nouns               []string `json:nouns`
@@ -48,6 +54,9 @@ type jsonContent struct {
 	StatesSmall         []string `json:statesSmall`
 	Days                []string `json:days`
 	Months              []string `json:months`
+	FemaleTitles        []string `json:femaleTitles`
+	MaleTitles          []string `json:maleTitles`
+	Timezones           []string `json:timezones` // https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 }
 
 var jsonData = jsonContent{}
@@ -75,6 +84,24 @@ func seedAndReturnRandomFloat() float64 {
 // Returns a random part of a slice
 func randomFrom(source []string) string {
 	return source[seedAndReturnRandom(len(source))]
+}
+
+// Returns a random title, gender decides the gender of the name
+func Title(gender int) string {
+	var title = ""
+	switch gender {
+	case Male:
+		title = randomFrom(jsonData.MaleTitles)
+		break
+	case Female:
+		title = randomFrom(jsonData.FemaleTitles)
+		break
+	default:
+		rand.Seed(time.Now().UnixNano())
+		title = FirstName(rand.Intn(2))
+		break
+	}
+	return title
 }
 
 // Returns a random first name, gender decides the gender of the name
@@ -107,7 +134,7 @@ func FullName(gender int) string {
 
 // Returns a random email
 func Email() string {
-	return strings.ToLower(FirstName(RandomGender)+LastName()) + "@" + randomFrom(jsonData.Domains)
+	return strings.ToLower(FirstName(RandomGender)+LastName()) + StringNumberExt(1, "", 3) + "@" + randomFrom(jsonData.Domains)
 }
 
 // Returns a random country, countryStyle decides what kind of format the returned country will have
@@ -262,6 +289,27 @@ func IpV4Address() string {
 	return strings.Join(blocks, ".")
 }
 
+// Returns a valid IPv6 address as net.IP
+func IpV6Address() string {
+	var ip net.IP
+	for i := 0; i < net.IPv6len; i++ {
+		number := uint8(seedAndReturnRandom(255))
+		ip = append(ip, number)
+	}
+	return ip.String()
+}
+
+// MacAddress returns an mac address string
+func MacAddress() string {
+	blocks := []string{}
+	for i := 0; i < 6; i++ {
+		number := fmt.Sprintf("%02x", seedAndReturnRandom(255))
+		blocks = append(blocks, number)
+	}
+
+	return strings.Join(blocks, ":")
+}
+
 // Returns random day
 func Day() string {
 	return randomFrom(jsonData.Days)
@@ -280,5 +328,37 @@ func FullDate() string {
 	year := timestamp.Year()
 	fullDate := day + " " + strconv.Itoa(Number(1, 30)) + " " + month[0:3] + " " + strconv.Itoa(year)
 	return fullDate
+}
 
+// Returns a date string within a given range, given in the format "2006-01-02".
+// If no argument is supplied it will return the result of randomdata.FullDate().
+// If only one argument is supplied it is treated as the max date to return.
+// If a second argument is supplied it returns a date between (and including) the two dates.
+// Returned date is in format "Monday 2 Jan 2006".
+func FullDateInRange(dateRange ...string) string {
+	var (
+		min        time.Time
+		max        time.Time
+		duration   int
+		dateString string
+	)
+	if len(dateRange) == 1 {
+		max, _ = time.Parse(DateInputLayout, dateRange[0])
+	} else if len(dateRange) == 2 {
+		min, _ = time.Parse(DateInputLayout, dateRange[0])
+		max, _ = time.Parse(DateInputLayout, dateRange[1])
+	}
+	if !max.IsZero() && max.After(min) {
+		duration = Number(int(max.Sub(min))) * -1
+		dateString = max.Add(time.Duration(duration)).Format(DateOutputLayout)
+	} else if !max.IsZero() && !max.After(min) {
+		dateString = max.Format(DateOutputLayout)
+	} else {
+		dateString = FullDate()
+	}
+	return dateString
+}
+
+func Timezone() string {
+	return randomFrom(jsonData.Timezones)
 }

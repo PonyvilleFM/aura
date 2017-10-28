@@ -7,6 +7,8 @@
 package agent
 
 import (
+	"bufio"
+	"encoding/binary"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -14,13 +16,12 @@ import (
 	"os"
 	gosignal "os/signal"
 	"runtime"
+	"runtime/debug"
 	"runtime/pprof"
 	"runtime/trace"
 	"strconv"
 	"sync"
 	"time"
-
-	"bufio"
 
 	"github.com/google/gops/internal"
 	"github.com/google/gops/signal"
@@ -43,10 +44,11 @@ type Options struct {
 	// Optional.
 	Addr string
 
-	// NoShutdownCleanup tells the agent not to automatically cleanup
-	// resources if the running process receives an interrupt.
+	// ShutdownCleanup automatically cleans up resources if the
+	// running process receives an interrupt. Otherwise, users
+	// can call Close before shutting down.
 	// Optional.
-	NoShutdownCleanup bool
+	ShutdownCleanup bool
 }
 
 // Listen starts the gops agent on a host process. Once agent started, users
@@ -58,13 +60,10 @@ type Options struct {
 // Note: The agent exposes an endpoint via a TCP connection that can be used by
 // any program on the system. Review your security requirements before starting
 // the agent.
-func Listen(opts *Options) error {
+func Listen(opts Options) error {
 	mu.Lock()
 	defer mu.Unlock()
 
-	if opts == nil {
-		opts = &Options{}
-	}
 	if portfile != "" {
 		return fmt.Errorf("gops: agent already listening at: %v", listener.Addr())
 	}
@@ -77,7 +76,7 @@ func Listen(opts *Options) error {
 	if err != nil {
 		return err
 	}
-	if !opts.NoShutdownCleanup {
+	if opts.ShutdownCleanup {
 		gracefulShutdown()
 	}
 
@@ -165,7 +164,7 @@ func formatBytes(val uint64) string {
 	return fmt.Sprintf("%d bytes", val)
 }
 
-func handle(conn io.Writer, msg []byte) error {
+func handle(conn io.ReadWriter, msg []byte) error {
 	switch msg[0] {
 	case signal.StackTrace:
 		return pprof.Lookup("goroutine").WriteTo(conn, 2)
@@ -232,6 +231,12 @@ func handle(conn io.Writer, msg []byte) error {
 		trace.Start(conn)
 		time.Sleep(5 * time.Second)
 		trace.Stop()
+	case signal.SetGCPercent:
+		perc, err := binary.ReadVarint(bufio.NewReader(conn))
+		if err != nil {
+			return err
+		}
+		fmt.Fprintf(conn, "New GC percent set to %v. Previous value was %v.\n", perc, debug.SetGCPercent(int(perc)))
 	}
 	return nil
 }

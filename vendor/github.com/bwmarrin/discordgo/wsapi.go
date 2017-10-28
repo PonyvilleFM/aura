@@ -15,21 +15,33 @@ import (
 	"compress/zlib"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"runtime"
+	"sync/atomic"
 	"time"
 
 	"github.com/gorilla/websocket"
 )
+
+// ErrWSAlreadyOpen is thrown when you attempt to open
+// a websocket that already is open.
+var ErrWSAlreadyOpen = errors.New("web socket already opened")
+
+// ErrWSNotFound is thrown when you attempt to use a websocket
+// that doesn't exist
+var ErrWSNotFound = errors.New("no websocket connection exists")
+
+// ErrWSShardBounds is thrown when you try to use a shard ID that is
+// less than the total shard count
+var ErrWSShardBounds = errors.New("ShardID must be less than ShardCount")
 
 type resumePacket struct {
 	Op   int `json:"op"`
 	Data struct {
 		Token     string `json:"token"`
 		SessionID string `json:"session_id"`
-		Sequence  int    `json:"seq"`
+		Sequence  int64  `json:"seq"`
 	} `json:"d"`
 }
 
@@ -57,7 +69,7 @@ func (s *Session) Open() (err error) {
 	}
 
 	if s.wsConn != nil {
-		err = errors.New("Web socket already opened.")
+		err = ErrWSAlreadyOpen
 		return
 	}
 
@@ -74,7 +86,7 @@ func (s *Session) Open() (err error) {
 		}
 
 		// Add the version and encoding to the URL
-		s.gateway = fmt.Sprintf("%s?v=4&encoding=json", s.gateway)
+		s.gateway = s.gateway + "?v=" + APIVersion + "&encoding=json"
 	}
 
 	header := http.Header{}
@@ -89,13 +101,14 @@ func (s *Session) Open() (err error) {
 		return
 	}
 
-	if s.sessionID != "" && s.sequence > 0 {
+	sequence := atomic.LoadInt64(s.sequence)
+	if s.sessionID != "" && sequence > 0 {
 
 		p := resumePacket{}
 		p.Op = 6
 		p.Data.Token = s.Token
 		p.Data.SessionID = s.sessionID
-		p.Data.Sequence = s.sequence
+		p.Data.Sequence = sequence
 
 		s.log(LogInformational, "sending resume packet to gateway")
 		err = s.wsConn.WriteJSON(p)
@@ -117,6 +130,7 @@ func (s *Session) Open() (err error) {
 	// lock.
 	s.listening = make(chan interface{})
 	go s.listen(s.wsConn, s.listening)
+	s.LastHeartbeatAck = time.Now().UTC()
 
 	s.Unlock()
 
@@ -176,14 +190,22 @@ func (s *Session) listen(wsConn *websocket.Conn, listening <-chan interface{}) {
 }
 
 type heartbeatOp struct {
-	Op   int `json:"op"`
-	Data int `json:"d"`
+	Op   int   `json:"op"`
+	Data int64 `json:"d"`
 }
+
+type helloOp struct {
+	HeartbeatInterval time.Duration `json:"heartbeat_interval"`
+	Trace             []string      `json:"_trace"`
+}
+
+// FailedHeartbeatAcks is the Number of heartbeat intervals to wait until forcing a connection restart.
+const FailedHeartbeatAcks time.Duration = 5 * time.Millisecond
 
 // heartbeat sends regular heartbeats to Discord so it knows the client
 // is still connected.  If you do not send these heartbeats Discord will
 // disconnect the websocket connection after a few seconds.
-func (s *Session) heartbeat(wsConn *websocket.Conn, listening <-chan interface{}, i time.Duration) {
+func (s *Session) heartbeat(wsConn *websocket.Conn, listening <-chan interface{}, heartbeatIntervalMsec time.Duration) {
 
 	s.log(LogInformational, "called")
 
@@ -192,19 +214,26 @@ func (s *Session) heartbeat(wsConn *websocket.Conn, listening <-chan interface{}
 	}
 
 	var err error
-	ticker := time.NewTicker(i * time.Millisecond)
+	ticker := time.NewTicker(heartbeatIntervalMsec * time.Millisecond)
+	defer ticker.Stop()
 
 	for {
-
-		s.log(LogInformational, "sending gateway websocket heartbeat seq %d", s.sequence)
+		s.RLock()
+		last := s.LastHeartbeatAck
+		s.RUnlock()
+		sequence := atomic.LoadInt64(s.sequence)
+		s.log(LogInformational, "sending gateway websocket heartbeat seq %d", sequence)
 		s.wsMutex.Lock()
-		err = wsConn.WriteJSON(heartbeatOp{1, s.sequence})
+		err = wsConn.WriteJSON(heartbeatOp{1, sequence})
 		s.wsMutex.Unlock()
-		if err != nil {
-			s.log(LogError, "error sending heartbeat to gateway %s, %s", s.gateway, err)
-			s.Lock()
-			s.DataReady = false
-			s.Unlock()
+		if err != nil || time.Now().UTC().Sub(last) > (heartbeatIntervalMsec*FailedHeartbeatAcks) {
+			if err != nil {
+				s.log(LogError, "error sending heartbeat to gateway %s, %s", s.gateway, err)
+			} else {
+				s.log(LogError, "haven't gotten a heartbeat ACK in %v, triggering a reconnection", time.Now().UTC().Sub(last))
+			}
+			s.Close()
+			s.reconnect()
 			return
 		}
 		s.Lock()
@@ -221,8 +250,10 @@ func (s *Session) heartbeat(wsConn *websocket.Conn, listening <-chan interface{}
 }
 
 type updateStatusData struct {
-	IdleSince *int  `json:"idle_since"`
-	Game      *Game `json:"game"`
+	IdleSince *int   `json:"since"`
+	Game      *Game  `json:"game"`
+	AFK       bool   `json:"afk"`
+	Status    string `json:"status"`
 }
 
 type updateStatusOp struct {
@@ -242,10 +273,13 @@ func (s *Session) UpdateStreamingStatus(idle int, game string, url string) (err 
 	s.RLock()
 	defer s.RUnlock()
 	if s.wsConn == nil {
-		return errors.New("no websocket connection exists")
+		return ErrWSNotFound
 	}
 
-	var usd updateStatusData
+	usd := updateStatusData{
+		Status: "online",
+	}
+
 	if idle > 0 {
 		usd.IdleSince = &idle
 	}
@@ -299,7 +333,7 @@ func (s *Session) RequestGuildMembers(guildID, query string, limit int) (err err
 	s.RLock()
 	defer s.RUnlock()
 	if s.wsConn == nil {
-		return errors.New("no websocket connection exists")
+		return ErrWSNotFound
 	}
 
 	data := requestGuildMembersData{
@@ -365,7 +399,7 @@ func (s *Session) onEvent(messageType int, message []byte) {
 	if e.Operation == 1 {
 		s.log(LogInformational, "sending heartbeat in response to Op1")
 		s.wsMutex.Lock()
-		err = s.wsConn.WriteJSON(heartbeatOp{1, s.sequence})
+		err = s.wsConn.WriteJSON(heartbeatOp{1, atomic.LoadInt64(s.sequence)})
 		s.wsMutex.Unlock()
 		if err != nil {
 			s.log(LogError, "error sending heartbeat in response to Op1")
@@ -378,7 +412,10 @@ func (s *Session) onEvent(messageType int, message []byte) {
 	// Reconnect
 	// Must immediately disconnect from gateway and reconnect to new gateway.
 	if e.Operation == 7 {
-		// TODO
+		s.log(LogInformational, "Closing and reconnecting in response to Op7")
+		s.Close()
+		s.reconnect()
+		return
 	}
 
 	// Invalid Session
@@ -396,6 +433,24 @@ func (s *Session) onEvent(messageType int, message []byte) {
 		return
 	}
 
+	if e.Operation == 10 {
+		var h helloOp
+		if err = json.Unmarshal(e.RawData, &h); err != nil {
+			s.log(LogError, "error unmarshalling helloOp, %s", err)
+		} else {
+			go s.heartbeat(s.wsConn, s.listening, h.HeartbeatInterval)
+		}
+		return
+	}
+
+	if e.Operation == 11 {
+		s.Lock()
+		s.LastHeartbeatAck = time.Now().UTC()
+		s.Unlock()
+		s.log(LogInformational, "got heartbeat ACK")
+		return
+	}
+
 	// Do not try to Dispatch a non-Dispatch Message
 	if e.Operation != 0 {
 		// But we probably should be doing something with them.
@@ -405,7 +460,7 @@ func (s *Session) onEvent(messageType int, message []byte) {
 	}
 
 	// Store the message sequence
-	s.sequence = e.Sequence
+	atomic.StoreInt64(s.sequence, e.Sequence)
 
 	// Map event to registered event handlers and pass it along to any registered handlers.
 	if eh, ok := registeredInterfaceProviders[e.Type]; ok {
@@ -458,18 +513,24 @@ func (s *Session) ChannelVoiceJoin(gID, cID string, mute, deaf bool) (voice *Voi
 
 	s.log(LogInformational, "called")
 
+	s.RLock()
 	voice, _ = s.VoiceConnections[gID]
+	s.RUnlock()
 
 	if voice == nil {
 		voice = &VoiceConnection{}
+		s.Lock()
 		s.VoiceConnections[gID] = voice
+		s.Unlock()
 	}
 
+	voice.Lock()
 	voice.GuildID = gID
 	voice.ChannelID = cID
 	voice.deaf = deaf
 	voice.mute = mute
 	voice.session = s
+	voice.Unlock()
 
 	// Send the request to Discord that we want to join the voice channel
 	data := voiceChannelJoinOp{4, voiceChannelJoinData{&gID, &cID, mute, deaf}}
@@ -500,7 +561,9 @@ func (s *Session) onVoiceStateUpdate(st *VoiceStateUpdate) {
 	}
 
 	// Check if we have a voice connection to update
+	s.RLock()
 	voice, exists := s.VoiceConnections[st.GuildID]
+	s.RUnlock()
 	if !exists {
 		return
 	}
@@ -511,8 +574,11 @@ func (s *Session) onVoiceStateUpdate(st *VoiceStateUpdate) {
 	}
 
 	// Store the SessionID for later use.
+	voice.Lock()
 	voice.UserID = st.UserID
 	voice.sessionID = st.SessionID
+	voice.ChannelID = st.ChannelID
+	voice.Unlock()
 }
 
 // onVoiceServerUpdate handles the Voice Server Update data websocket event.
@@ -524,7 +590,9 @@ func (s *Session) onVoiceServerUpdate(st *VoiceServerUpdate) {
 
 	s.log(LogInformational, "called")
 
+	s.RLock()
 	voice, exists := s.VoiceConnections[st.GuildID]
+	s.RUnlock()
 
 	// If no VoiceConnection exists, just skip this
 	if !exists {
@@ -536,9 +604,11 @@ func (s *Session) onVoiceServerUpdate(st *VoiceServerUpdate) {
 	voice.Close()
 
 	// Store values for later use
+	voice.Lock()
 	voice.token = st.Token
 	voice.endpoint = st.Endpoint
 	voice.GuildID = st.GuildID
+	voice.Unlock()
 
 	// Open a conenction to the voice server
 	err := voice.open()
@@ -588,7 +658,7 @@ func (s *Session) identify() error {
 	if s.ShardCount > 1 {
 
 		if s.ShardID >= s.ShardCount {
-			return errors.New("ShardID must be less than ShardCount")
+			return ErrWSShardBounds
 		}
 
 		data.Shard = &[2]int{s.ShardID, s.ShardCount}
@@ -628,6 +698,8 @@ func (s *Session) reconnect() {
 				// However, there seems to be cases where something "weird"
 				// happens.  So we're doing this for now just to improve
 				// stability in those edge cases.
+				s.RLock()
+				defer s.RUnlock()
 				for _, v := range s.VoiceConnections {
 
 					s.log(LogInformational, "reconnecting voice connection to guild %s", v.GuildID)
@@ -638,6 +710,13 @@ func (s *Session) reconnect() {
 					time.Sleep(1 * time.Second)
 
 				}
+				return
+			}
+
+			// Certain race conditions can call reconnect() twice. If this happens, we
+			// just break out of the reconnect loop
+			if err == ErrWSAlreadyOpen {
+				s.log(LogInformational, "Websocket already exists, no need to reconnect")
 				return
 			}
 
@@ -675,7 +754,9 @@ func (s *Session) Close() (err error) {
 		s.log(LogInformational, "sending close frame")
 		// To cleanly close a connection, a client should send a close
 		// frame and wait for the server to close the connection.
+		s.wsMutex.Lock()
 		err := s.wsConn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+		s.wsMutex.Unlock()
 		if err != nil {
 			s.log(LogInformational, "error closing websocket, %s", err)
 		}

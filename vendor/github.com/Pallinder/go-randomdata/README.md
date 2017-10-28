@@ -1,3 +1,4 @@
+
 go-randomdata
 ==============
 [![Build Status](https://travis-ci.org/Pallinder/go-randomdata.png)](https://travis-ci.org/Pallinder/go-randomdata)
@@ -19,6 +20,8 @@ randomdata is a tiny help suite for generating random data such as
 * random days
 * random months
 * random full date
+* random full profile
+* random date inside range
 
 ### Installation
 ```go get github.com/Pallinder/go-randomdata```
@@ -33,13 +36,21 @@ package main
 
 import (
 	"fmt"
-	"time"
 	"github.com/Pallinder/go-randomdata"
 )
 
 func main() {
 	// Print a random silly name
 	fmt.Println(randomdata.SillyName())
+
+	// Print a male title
+    	fmt.Println(randomdata.Title(randomdata.Male))
+
+    	// Print a female title
+    	fmt.Println(randomdata.Title(randomdata.Female))
+
+    	// Print a title with random gender
+   	fmt.Println(randomdata.Title(randomdata.RandomGender))
 
 	// Print a male first name
 	fmt.Println(randomdata.FirstName(randomdata.Male))
@@ -122,15 +133,28 @@ func main() {
 	// Print a valid random IPv4 address
 	fmt.Println(randomdata.IpV4Address())
 
+	// Print a valid random IPv6 address
+	fmt.Println(randomdata.Ipv6Address())
+
 	// Print a day
 	fmt.Println(randomdata.Day())
   
 	// Print a month
 	fmt.Println(randomdata.Month())
   
-	// Print full date like Thursday 22 Aug 2016
+	// Print full date like Monday 22 Aug 2016
 	fmt.Println(randomdata.FullDate())
 
+	// Print full date <= Monday 22 Aug 2016
+	fmt.Println(randomdata.FullDateInRange("2016-08-22"))
+
+	// Print full date >= Monday 01 Aug 2016 and <= Monday 22 Aug 2016
+	fmt.Println(randomdata.FullDateInRange("2016-08-01", "2016-08-22"))
+
+	// Get a complete and randomised profile of data generally used for users
+	// There are many fields in the profile to use check the Profile struct definition in fullprofile.go
+	profile := randomdata.GenerateProfile(randomdata.Male | randomdata.Female | randomdata.RandomGender)
+	fmt.Printf("The new profile's username is: %s and password (md5)", profile.Login.Username, profile.Login.Md5)
 }
 
 ```
