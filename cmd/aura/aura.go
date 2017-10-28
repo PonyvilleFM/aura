@@ -321,12 +321,17 @@ func main() {
 	hid := hashids.NewData()
 	hid.Salt = hashidsSalt
 
+	hiid, err := hashids.NewWithData(hid)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	a := &aura{
 		cs:              bot.NewCommandSet(),
 		s:               dg,
 		guildRecordings: map[string]*rec{},
 
-		hid: hashids.NewWithData(hid),
+		hid: hiid,
 
 		state: &state{
 			DownloadURLs: map[string]string{},
