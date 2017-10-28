@@ -1,9 +1,13 @@
 package randomdata
 
 import (
+	"bytes"
+	"net"
+	"regexp"
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestRandomStringDigits(t *testing.T) {
@@ -235,6 +239,31 @@ func TestIpV4Address(t *testing.T) {
 	}
 }
 
+func TestIpV6Address(t *testing.T) {
+	ipAddress := net.ParseIP(IpV6Address())
+
+	if len(ipAddress) != net.IPv6len {
+		t.Errorf("Invalid generated IPv6 address %v", ipAddress)
+	}
+	roundTripIP := net.ParseIP(ipAddress.String())
+	if roundTripIP == nil || !bytes.Equal(ipAddress, roundTripIP) {
+		t.Errorf("Invalid generated IPv6 address %v", ipAddress)
+	}
+}
+
+func TestMacAddress(t *testing.T) {
+	t.Log("MacAddress")
+
+	mac := MacAddress()
+	if len(mac) != 17 {
+		t.Errorf("Invalid generated Mac address %v", mac)
+	}
+
+	if !regexp.MustCompile(`([0-9a-fa-f]{2}[:-]){5}([0-9a-fa-f]{2})`).MatchString(mac) {
+		t.Errorf("Invalid generated Mac address %v", mac)
+	}
+}
+
 func TestDecimal(t *testing.T) {
 	d := Decimal(2, 4, 3)
 	if !(d >= 2 && d <= 4) {
@@ -272,6 +301,79 @@ func TestFullDate(t *testing.T) {
 
 	if fulldateOne == fulldateTwo {
 		t.Error("Invalid random full date")
+	}
+}
+
+func TestFullDateInRangeNoArgs(t *testing.T) {
+	t.Log("TestFullDateInRangeNoArgs")
+	fullDate := FullDateInRange()
+	_, err := time.Parse(DateOutputLayout, fullDate)
+
+	if err != nil {
+		t.Error("Didn't get valid date format.")
+	}
+}
+
+func TestFullDateInRangeOneArg(t *testing.T) {
+	t.Log("TestFullDateInRangeOneArg")
+	maxDate, _ := time.Parse(DateInputLayout, "2016-12-31")
+	for i := 0; i < 100000; i++ {
+		fullDate := FullDateInRange("2016-12-31")
+		d, err := time.Parse(DateOutputLayout, fullDate)
+
+		if err != nil {
+			t.Error("Didn't get valid date format.")
+		}
+
+		if d.After(maxDate) {
+			t.Error("Random date didn't match specified max date.")
+		}
+	}
+}
+
+func TestFullDateInRangeTwoArgs(t *testing.T) {
+	t.Log("TestFullDateInRangeTwoArgs")
+	minDate, _ := time.Parse(DateInputLayout, "2016-01-01")
+	maxDate, _ := time.Parse(DateInputLayout, "2016-12-31")
+	for i := 0; i < 100000; i++ {
+		fullDate := FullDateInRange("2016-01-01", "2016-12-31")
+		d, err := time.Parse(DateOutputLayout, fullDate)
+
+		if err != nil {
+			t.Error("Didn't get valid date format.")
+		}
+
+		if d.After(maxDate) {
+			t.Error("Random date didn't match specified max date.")
+		}
+
+		if d.Before(minDate) {
+			t.Error("Random date didn't match specified min date.")
+		}
+	}
+}
+
+func TestFullDateInRangeSwappedArgs(t *testing.T) {
+	t.Log("TestFullDateInRangeSwappedArgs")
+	wrongMaxDate, _ := time.Parse(DateInputLayout, "2016-01-01")
+	fullDate := FullDateInRange("2016-12-31", "2016-01-01")
+	d, err := time.Parse(DateOutputLayout, fullDate)
+
+	if err != nil {
+		t.Error("Didn't get valid date format.")
+	}
+
+	if d != wrongMaxDate {
+		t.Error("Didn't return min date.")
+	}
+}
+
+func TestTimezone(t *testing.T) {
+	t.Log("TestTimezone")
+	timezone := Timezone()
+
+	if !findInSlice(jsonData.Timezones, timezone) {
+		t.Errorf("Couldnt find timezone in timezones: %v", timezone)
 	}
 }
 

@@ -13,6 +13,7 @@ package discordgo
 
 import (
 	"encoding/json"
+	"net/http"
 	"strconv"
 	"sync"
 	"time"
@@ -28,6 +29,7 @@ type Session struct {
 
 	// Authentication token for this session
 	Token string
+	MFA   bool
 
 	// Debug for printing JSON request/responses
 	Debug    bool // Deprecated, will be removed.
@@ -47,6 +49,10 @@ type Session struct {
 	// State tracking is the best way for getting the the users
 	// active guilds and the members of the guilds.
 	StateEnabled bool
+
+	// Whether or not to call event handlers synchronously.
+	// e.g false = launch event handlers in their own goroutines.
+	SyncEvents bool
 
 	// Exposed but should not be modified by User.
 
@@ -73,6 +79,12 @@ type Session struct {
 	// StateEnabled is true.
 	State *State
 
+	// The http client used for REST requests
+	Client *http.Client
+
+	// Stores the last HeartbeatAck that was recieved (in UTC)
+	LastHeartbeatAck time.Time
+
 	// Event handlers
 	handlersMu   sync.RWMutex
 	handlers     map[string][]*eventHandlerInstance
@@ -88,7 +100,7 @@ type Session struct {
 	ratelimiter *RateLimiter
 
 	// sequence tracks the current gateway api websocket sequence number
-	sequence int
+	sequence *int64
 
 	// stores sessions current Discord Gateway
 	gateway string
@@ -98,12 +110,6 @@ type Session struct {
 
 	// used to make sure gateway websocket writes do not happen concurrently
 	wsMutex sync.Mutex
-}
-
-type rateLimitMutex struct {
-	sync.Mutex
-	url map[string]*sync.Mutex
-	// bucket map[string]*sync.Mutex // TODO :)
 }
 
 // A VoiceRegion stores data for a specific voice region server.
@@ -142,18 +148,30 @@ type Invite struct {
 	Temporary bool      `json:"temporary"`
 }
 
+// ChannelType is the type of a Channel
+type ChannelType int
+
+// Block contains known ChannelType values
+const (
+	ChannelTypeGuildText ChannelType = iota
+	ChannelTypeDM
+	ChannelTypeGuildVoice
+	ChannelTypeGroupDM
+	ChannelTypeGuildCategory
+)
+
 // A Channel holds all data related to an individual Discord channel.
 type Channel struct {
 	ID                   string                 `json:"id"`
 	GuildID              string                 `json:"guild_id"`
 	Name                 string                 `json:"name"`
 	Topic                string                 `json:"topic"`
-	Type                 string                 `json:"type"`
+	Type                 ChannelType            `json:"type"`
 	LastMessageID        string                 `json:"last_message_id"`
+	NSFW                 bool                   `json:"nsfw"`
 	Position             int                    `json:"position"`
 	Bitrate              int                    `json:"bitrate"`
-	IsPrivate            bool                   `json:"is_private"`
-	Recipient            *User                  `json:"recipient"`
+	Recipients           []*User                `json:"recipient"`
 	Messages             []*Message             `json:"-"`
 	PermissionOverwrites []*PermissionOverwrite `json:"permission_overwrites"`
 }
@@ -235,9 +253,15 @@ type UserGuild struct {
 
 // A GuildParams stores all the data needed to update discord guild settings
 type GuildParams struct {
-	Name              string             `json:"name"`
-	Region            string             `json:"region"`
-	VerificationLevel *VerificationLevel `json:"verification_level"`
+	Name                        string             `json:"name,omitempty"`
+	Region                      string             `json:"region,omitempty"`
+	VerificationLevel           *VerificationLevel `json:"verification_level,omitempty"`
+	DefaultMessageNotifications int                `json:"default_message_notifications,omitempty"` // TODO: Separate type?
+	AfkChannelID                string             `json:"afk_channel_id,omitempty"`
+	AfkTimeout                  int                `json:"afk_timeout,omitempty"`
+	Icon                        string             `json:"icon,omitempty"`
+	OwnerID                     string             `json:"owner_id,omitempty"`
+	Splash                      string             `json:"splash,omitempty"`
 }
 
 // A Role stores information about Discord guild member roles.
@@ -250,6 +274,21 @@ type Role struct {
 	Color       int    `json:"color"`
 	Position    int    `json:"position"`
 	Permissions int    `json:"permissions"`
+}
+
+// Roles are a collection of Role
+type Roles []*Role
+
+func (r Roles) Len() int {
+	return len(r)
+}
+
+func (r Roles) Less(i, j int) bool {
+	return r[i].Position > r[j].Position
+}
+
+func (r Roles) Swap(i, j int) {
+	r[i], r[j] = r[j], r[i]
 }
 
 // A VoiceState stores the voice states of Guilds
@@ -272,19 +311,20 @@ type Presence struct {
 	Game   *Game    `json:"game"`
 	Nick   string   `json:"nick"`
 	Roles  []string `json:"roles"`
+	Since  *int     `json:"since"`
 }
 
 // A Game struct holds the name of the "playing .." game for a user
 type Game struct {
 	Name string `json:"name"`
 	Type int    `json:"type"`
-	URL  string `json:"url"`
+	URL  string `json:"url,omitempty"`
 }
 
 // UnmarshalJSON unmarshals json to Game struct
 func (g *Game) UnmarshalJSON(bytes []byte) error {
 	temp := &struct {
-		Name string          `json:"name"`
+		Name json.Number     `json:"name"`
 		Type json.RawMessage `json:"type"`
 		URL  string          `json:"url"`
 	}{}
@@ -292,8 +332,8 @@ func (g *Game) UnmarshalJSON(bytes []byte) error {
 	if err != nil {
 		return err
 	}
-	g.Name = temp.Name
 	g.URL = temp.URL
+	g.Name = temp.Name.String()
 
 	if temp.Type != nil {
 		err = json.Unmarshal(temp.Type, &g.Type)
@@ -322,19 +362,6 @@ type Member struct {
 	Mute     bool     `json:"mute"`
 	User     *User    `json:"user"`
 	Roles    []string `json:"roles"`
-}
-
-// A User stores all data for an individual Discord user.
-type User struct {
-	ID            string `json:"id"`
-	Email         string `json:"email"`
-	Username      string `json:"username"`
-	Avatar        string `json:"Avatar"`
-	Discriminator string `json:"discriminator"`
-	Token         string `json:"token"`
-	Verified      bool   `json:"verified"`
-	MFAEnabled    bool   `json:"mfa_enabled"`
-	Bot           bool   `json:"bot"`
 }
 
 // A Settings stores data for a specific users Discord client settings.
@@ -502,6 +529,12 @@ type MessageReaction struct {
 	ChannelID string `json:"channel_id"`
 }
 
+// GatewayBotResponse stores the data for the gateway/bot response
+type GatewayBotResponse struct {
+	URL    string `json:"url"`
+	Shards int    `json:"shards"`
+}
+
 // Constants for the different bit offsets of text channel permissions
 const (
 	PermissionReadMessages = 1 << (iota + 10)
@@ -542,6 +575,8 @@ const (
 	PermissionAdministrator
 	PermissionManageChannels
 	PermissionManageServer
+	PermissionAddReactions
+	PermissionViewAuditLogs
 
 	PermissionAllText = PermissionReadMessages |
 		PermissionSendMessages |
@@ -561,9 +596,65 @@ const (
 		PermissionAllVoice |
 		PermissionCreateInstantInvite |
 		PermissionManageRoles |
-		PermissionManageChannels
+		PermissionManageChannels |
+		PermissionAddReactions |
+		PermissionViewAuditLogs
 	PermissionAll = PermissionAllChannel |
 		PermissionKickMembers |
 		PermissionBanMembers |
-		PermissionManageServer
+		PermissionManageServer |
+		PermissionAdministrator
+)
+
+// Block contains Discord JSON Error Response codes
+const (
+	ErrCodeUnknownAccount     = 10001
+	ErrCodeUnknownApplication = 10002
+	ErrCodeUnknownChannel     = 10003
+	ErrCodeUnknownGuild       = 10004
+	ErrCodeUnknownIntegration = 10005
+	ErrCodeUnknownInvite      = 10006
+	ErrCodeUnknownMember      = 10007
+	ErrCodeUnknownMessage     = 10008
+	ErrCodeUnknownOverwrite   = 10009
+	ErrCodeUnknownProvider    = 10010
+	ErrCodeUnknownRole        = 10011
+	ErrCodeUnknownToken       = 10012
+	ErrCodeUnknownUser        = 10013
+	ErrCodeUnknownEmoji       = 10014
+
+	ErrCodeBotsCannotUseEndpoint  = 20001
+	ErrCodeOnlyBotsCanUseEndpoint = 20002
+
+	ErrCodeMaximumGuildsReached     = 30001
+	ErrCodeMaximumFriendsReached    = 30002
+	ErrCodeMaximumPinsReached       = 30003
+	ErrCodeMaximumGuildRolesReached = 30005
+	ErrCodeTooManyReactions         = 30010
+
+	ErrCodeUnauthorized = 40001
+
+	ErrCodeMissingAccess                             = 50001
+	ErrCodeInvalidAccountType                        = 50002
+	ErrCodeCannotExecuteActionOnDMChannel            = 50003
+	ErrCodeEmbedCisabled                             = 50004
+	ErrCodeCannotEditFromAnotherUser                 = 50005
+	ErrCodeCannotSendEmptyMessage                    = 50006
+	ErrCodeCannotSendMessagesToThisUser              = 50007
+	ErrCodeCannotSendMessagesInVoiceChannel          = 50008
+	ErrCodeChannelVerificationLevelTooHigh           = 50009
+	ErrCodeOAuth2ApplicationDoesNotHaveBot           = 50010
+	ErrCodeOAuth2ApplicationLimitReached             = 50011
+	ErrCodeInvalidOAuthState                         = 50012
+	ErrCodeMissingPermissions                        = 50013
+	ErrCodeInvalidAuthenticationToken                = 50014
+	ErrCodeNoteTooLong                               = 50015
+	ErrCodeTooFewOrTooManyMessagesToDelete           = 50016
+	ErrCodeCanOnlyPinMessageToOriginatingChannel     = 50019
+	ErrCodeCannotExecuteActionOnSystemMessage        = 50021
+	ErrCodeMessageProvidedTooOldForBulkDelete        = 50034
+	ErrCodeInvalidFormBody                           = 50035
+	ErrCodeInviteAcceptedToGuildApplicationsBotNotIn = 50036
+
+	ErrCodeReactionBlocked = 90001
 )

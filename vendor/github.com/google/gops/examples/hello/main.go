@@ -12,8 +12,8 @@ import (
 )
 
 func main() {
-	if err := agent.Listen(&agent.Options{
-		Addr: "127.0.0.1:4321",
+	if err := agent.Listen(agent.Options{
+		ShutdownCleanup: true, // automatically closes on os.Interrupt
 	}); err != nil {
 		log.Fatal(err)
 	}
