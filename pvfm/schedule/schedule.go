@@ -21,7 +21,7 @@ type ScheduleResult struct {
 type ScheduleEntry struct {
 	StartTime   string `json:"start_time"`
 	StartUnix   int    `json:"start_unix"`
-	Duration    string `json:"duration"`
+	Duration    int    `json:"duration"` // minutes
 	EndTime     string `json:"end_time"`
 	EndUnix     int    `json:"end_unix"`
 	Name        string `json:"name"`
