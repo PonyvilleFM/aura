@@ -5,3 +5,5 @@ var
 stream.mp3
 ./aura
 ./aerial
+*.iml
+.idea/
