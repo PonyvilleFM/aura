@@ -145,17 +145,32 @@ func stats(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 }
 
 func schedule(s *discordgo.Session, m *discordgo.Message, parv []string) error {
-	result := []string{}
 	schEntries, err := pvfmschedule.Get()
 	if err != nil {
 		return err
 	}
 
+	// Create embed object
+	outputEmbed := NewEmbed().
+		SetTitle("Upcoming Shows").
+		SetDescription("These are the upcoming shows and events airing soon on PVFM 1.")
+
 	for _, entry := range schEntries {
-		result = append(result, entry.String())
+
+		// Format countdown timer
+		startTimeUnix := time.Unix(int64(entry.StartUnix), 0)
+		nowWithoutNanoseconds := time.Unix(time.Now().Unix(), 0)
+		dur := startTimeUnix.Sub(nowWithoutNanoseconds)
+
+		// Show "Live Now!" if the timer is less than 0h0m0s
+		if dur > 0 {
+			outputEmbed.AddField(":musical_note:  "+entry.Host+" - "+entry.Name, entry.StartTime+"\n"+dur.String())
+		} else {
+			outputEmbed.AddField(":musical_note:  "+entry.Host+" - "+entry.Name, "Live now!")
+		}
 	}
 
-	s.ChannelMessageSend(m.ChannelID, strings.Join(result, "\n"))
+	s.ChannelMessageSendEmbed(m.ChannelID, outputEmbed.MessageEmbed)
 	return nil
 }
 
@@ -215,8 +230,8 @@ func streams(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 		SetTitle("Stream Links").
 		SetDescription("These are direct feeds of the live streams; most browsers and media players can play them!")
 
-		// this will dynamically build the list from station metadata
-		pvfmList := ""
+	// this will dynamically build the list from station metadata
+	pvfmList := ""
 	for _, element := range currentMeta.Icestats.Source {
 		pvfmList += element.ServerDescription + ":\n<" + strings.Replace(element.Listenurl, "aerial", "dj.bronyradio.com", -1) + ">\n"
 	}
