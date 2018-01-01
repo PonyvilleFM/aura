@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/bwmarrin/discordgo"
+	"strings"
 )
 
 func printerFact(s *discordgo.Session, m *discordgo.Message, parv []string) error {
@@ -15,7 +16,9 @@ func printerFact(s *discordgo.Session, m *discordgo.Message, parv []string) erro
 		return err
 	}
 
-	s.ChannelMessageSend(m.ChannelID, fact)
+	newFact := strings.Replace(fact, "kitten", "scanner", -1) // replace kitten with scanner because the API doesn't already do this
+
+	s.ChannelMessageSend(m.ChannelID, newFact)
 	return nil
 }
 
