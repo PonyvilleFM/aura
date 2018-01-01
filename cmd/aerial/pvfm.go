@@ -48,7 +48,7 @@ func np(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 
 	result := []string{}
 
-	if i.Main.Nowplaying == "Fetching info..." {
+	if i.Main.Nowplaying == "Fetching info..." { // something broke
 		log.Println("Main information was bad, fetching from station directly...")
 
 		err := doStationRequest(s, m, parv)
@@ -56,25 +56,23 @@ func np(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 			return err
 		}
 
+		s.ChannelMessageSend(m.ChannelID, strings.Join(result, "\n"))
 		return nil
 	} else {
-		result = append(result, "📻 **Now Playing on PVFM**\n")
+		outputEmbed := NewEmbed().
+			SetTitle("📻 **Now Playing on Ponyville FM!**").
+				SetDescription("Use `;streams` if you need a link to the radio!")
 
-		result = append(result, fmt.Sprintf(
-			"Main 🎵 %s\n",
-			i.Main.Nowplaying,
-		))
-		result = append(result, fmt.Sprintf(
-			"Chill 🎵 %s\n",
-			i.Secondary.Nowplaying,
-		))
-		result = append(result, fmt.Sprintf(
-			"Free! 🎵 %s",
-			i.MusicOnly.Nowplaying,
-		))
+		outputEmbed.AddField("🎵 Main", i.Main.Nowplaying)
+		outputEmbed.AddField("🎵 Chill", i.Secondary.Nowplaying)
+		outputEmbed.AddField("🎵 Free! (no DJ mixes)", i.MusicOnly.Nowplaying)
+		// TODO: update for new streams
+
+		outputEmbed.InlineAllFields() // To condense output
+
+		s.ChannelMessageSendEmbed(m.ChannelID, outputEmbed.MessageEmbed)
 	}
 
-	s.ChannelMessageSend(m.ChannelID, strings.Join(result, "\n"))
 	return nil
 }
 
