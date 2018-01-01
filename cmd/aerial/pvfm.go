@@ -164,7 +164,7 @@ func schedule(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 
 		// Show "Live Now!" if the timer is less than 0h0m0s
 		if dur > 0 {
-			outputEmbed.AddField(":musical_note:  "+entry.Host+" - "+entry.Name, entry.StartTime+"\n"+dur.String())
+			outputEmbed.AddField(":musical_note:  "+entry.Host+" - "+entry.Name, entry.StartTime+" "+entry.Timezone+"\nAirs in "+dur.String())
 		} else {
 			outputEmbed.AddField(":musical_note:  "+entry.Host+" - "+entry.Name, "Live now!")
 		}
