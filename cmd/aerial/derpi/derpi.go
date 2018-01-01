@@ -58,6 +58,7 @@ type DerpiResults struct {
 func SearchDerpi(tags string) (DerpiResults, error) {
 
 	// format for URL query
+	tags += ",safe" // Enforce the safe tag for PG rating
 	derpiTags := strings.Replace(tags, " ", "+", -1)
 
 	// make URL query
