@@ -54,9 +54,9 @@ func main() {
 	}
 
 	a.cs.Prefix = ";"
-	a.cs.AddCmd("np", "shows what's up next on Ponyville FM", bot.NoPermissions, np)
-	a.cs.AddCmd("dj", "shows which DJ is up next on Ponyville FM", bot.NoPermissions, dj)
+	a.cs.AddCmd("np", "shows radio station statistics for Ponyville FM", bot.NoPermissions, stats)
 	a.cs.AddCmd("stats", "shows radio station statistics for Ponyville FM", bot.NoPermissions, stats)
+	a.cs.AddCmd("dj", "shows which DJ is up next on Ponyville FM", bot.NoPermissions, dj)
 	a.cs.AddCmd("schedule", "shows the future radio schedule for Ponyville FM", bot.NoPermissions, schedule)
 	a.cs.AddCmd("printerfact", "shows useful facts about printers", bot.NoPermissions, printerFact)
 	a.cs.AddCmd("hipster", "hip me up fam", bot.NoPermissions, hipster)

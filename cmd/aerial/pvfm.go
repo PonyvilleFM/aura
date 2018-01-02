@@ -14,6 +14,7 @@ import (
 	"github.com/PonyvilleFM/aura/pvfm/station"
 	"github.com/bwmarrin/discordgo"
 	"github.com/tebeka/strftime"
+	"strconv"
 )
 
 func init() {
@@ -37,43 +38,6 @@ func pesterLink(s *discordgo.Session, m *discordgo.MessageCreate) {
 			s.ChannelMessageSend(m.ChannelID, "Please be mindful sharing links to music when a DJ is performing. Thanks!")
 		}
 	}
-}
-
-func np(s *discordgo.Session, m *discordgo.Message, parv []string) error {
-	i, err := pvfm.GetStats()
-	if err != nil {
-		log.Printf("Can't get info: %v, failing over to plan b", err)
-		return doStationRequest(s, m, parv)
-	}
-
-	result := []string{}
-
-	if i.Main.Nowplaying == "Fetching info..." { // something broke
-		log.Println("Main information was bad, fetching from station directly...")
-
-		err := doStationRequest(s, m, parv)
-		if err != nil {
-			return err
-		}
-
-		s.ChannelMessageSend(m.ChannelID, strings.Join(result, "\n"))
-		return nil
-	} else {
-		outputEmbed := NewEmbed().
-			SetTitle("📻 **Now Playing on Ponyville FM!**").
-				SetDescription("Use `;streams` if you need a link to the radio!")
-
-		outputEmbed.AddField("🎵 Main", i.Main.Nowplaying)
-		outputEmbed.AddField("🎵 Chill", i.Secondary.Nowplaying)
-		outputEmbed.AddField("🎵 Free! (no DJ mixes)", i.MusicOnly.Nowplaying)
-		// TODO: update for new streams
-
-		outputEmbed.InlineAllFields() // To condense output
-
-		s.ChannelMessageSendEmbed(m.ChannelID, outputEmbed.MessageEmbed)
-	}
-
-	return nil
 }
 
 func dj(s *discordgo.Session, m *discordgo.Message, parv []string) error {
@@ -126,18 +90,17 @@ func stats(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 		peak = peak + source.ListenerPeak
 	}
 
-	result := []string{
-		fmt.Sprintf(
-			"Current listeners across all streams: %d with a maximum of %d!",
-			i.Listeners.Listeners, peak,
-		),
-		fmt.Sprintf(
-			"Detailed: Main: %d listeners, Two: %d listeners, Free: %d listeners",
-			i.Main.Listeners, i.Secondary.Listeners, i.MusicOnly.Listeners,
-		),
-	}
+	outputEmbed := NewEmbed().
+		SetTitle("Listener Statistics").
+		SetDescription("Use `;streams` if you need a link to the radio!\nTotal listeners across all stations: " + strconv.Itoa(i.Listeners.Listeners) + " with a maximum  of " + strconv.Itoa(peak) + ".")
 
-	s.ChannelMessageSend(m.ChannelID, strings.Join(result, "\n"))
+	outputEmbed.AddField("🎵 Main", strconv.Itoa(i.Main.Listeners)+" listeners.\n" + i.Main.Nowplaying)
+	outputEmbed.AddField("🎵 Chill", strconv.Itoa(i.Secondary.Listeners)+" listeners.\n" + i.Secondary.Nowplaying)
+	outputEmbed.AddField("🎵 Free! (no DJ sets)", strconv.Itoa(i.MusicOnly.Listeners)+" listeners.\n" + i.MusicOnly.Nowplaying)
+
+	outputEmbed.InlineAllFields()
+
+	s.ChannelMessageSendEmbed(m.ChannelID, outputEmbed.MessageEmbed)
 
 	return nil
 }
