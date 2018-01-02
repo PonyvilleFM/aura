@@ -94,9 +94,9 @@ func stats(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 		SetTitle("Listener Statistics").
 		SetDescription("Use `;streams` if you need a link to the radio!\nTotal listeners across all stations: " + strconv.Itoa(i.Listeners.Listeners) + " with a maximum  of " + strconv.Itoa(peak) + ".")
 
-	outputEmbed.AddField("🎵 Main", strconv.Itoa(i.Main.Listeners)+" listeners.\n" + i.Main.Nowplaying)
-	outputEmbed.AddField("🎵 Chill", strconv.Itoa(i.Secondary.Listeners)+" listeners.\n" + i.Secondary.Nowplaying)
-	outputEmbed.AddField("🎵 Free! (no DJ sets)", strconv.Itoa(i.MusicOnly.Listeners)+" listeners.\n" + i.MusicOnly.Nowplaying)
+	outputEmbed.AddField("🎵 Main", strconv.Itoa(i.Main.Listeners)+" listeners.\n"+i.Main.Nowplaying)
+	outputEmbed.AddField("🎵 Chill", strconv.Itoa(i.Secondary.Listeners)+" listeners.\n"+i.Secondary.Nowplaying)
+	outputEmbed.AddField("🎵 Free! (no DJ sets)", strconv.Itoa(i.MusicOnly.Listeners)+" listeners.\n"+i.MusicOnly.Nowplaying)
 
 	outputEmbed.InlineAllFields()
 
@@ -223,9 +223,8 @@ func derpi(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 			return nil
 		}
 		s.ChannelMessageSend(m.ChannelID, "http:"+searchResults.Search[randomRange(0, len(searchResults.Search))].Image)
-		return nil
-	}else{
+	} else {
 		s.ChannelMessageSend(m.ChannelID, "Please use this command in <#292755043684450304> only.")
-		return nil
 	}
+	return nil
 }
