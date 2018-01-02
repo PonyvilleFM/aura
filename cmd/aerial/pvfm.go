@@ -226,5 +226,6 @@ func derpi(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 		return nil
 	}else{
 		s.ChannelMessageSend(m.ChannelID, "Please use this command in <#292755043684450304> only.")
+		return nil
 	}
 }
