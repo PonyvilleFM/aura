@@ -42,7 +42,7 @@ func getHipsterText() (string, error) {
 
 	wordCount := 5 // change this to adjust word count
 
-	for i := 0; i < wordCount-1; i++ {
+	for i := 0; i < wordCount; i++ {
 		truncatedText += textSlice[i] + " "
 	}
 
