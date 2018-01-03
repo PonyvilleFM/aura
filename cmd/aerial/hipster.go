@@ -20,7 +20,7 @@ func hipster(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 }
 
 func getHipsterText() (string, error) {
-	resp, err := http.Get("http://hipsterjesus.com/api/?type=hipster-centric&html=false&paras=1")
+	resp, err := http.Get("http://hipsterjesus.com/api/?type=hipster-centric&html=false") // paras parameter no longer respected, need to re-implement locally
 	if err != nil {
 		return "", err
 	}
@@ -37,6 +37,14 @@ func getHipsterText() (string, error) {
 	json.Unmarshal(body, textStruct)
 
 	text := strings.Split(textStruct.Text, ". ")[0]
+	textSlice := strings.Split(text, " ") // Separate each word into an array
+	truncatedText := ""
 
-	return text, nil
+	wordCount := 5 // change this to adjust word count
+
+	for i := 0; i < wordCount-1; i++ {
+		truncatedText += textSlice[i] + " "
+	}
+
+	return truncatedText, nil
 }
