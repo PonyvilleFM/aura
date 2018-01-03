@@ -59,7 +59,7 @@ func main() {
 	a.cs.AddCmd("dj", "shows which DJ is up next on Ponyville FM", bot.NoPermissions, dj)
 	a.cs.AddCmd("schedule", "shows the future radio schedule for Ponyville FM", bot.NoPermissions, schedule)
 	a.cs.AddCmd("printerfact", "shows useful facts about printers", bot.NoPermissions, printerFact)
-	a.cs.AddCmd("hipster", "hip me up fam", bot.NoPermissions, hipster)
+	//a.cs.AddCmd("hipster", "hip me up fam", bot.NoPermissions, hipster) // Disabled due to broken API
 	a.cs.AddCmd("source", "source code information", bot.NoPermissions, source.Source)
 	a.cs.AddCmd("time", "shows the current bot time", bot.NoPermissions, curTime)
 	a.cs.AddCmd("streams", "shows the different Ponyville FM stream links", bot.NoPermissions, streams)
