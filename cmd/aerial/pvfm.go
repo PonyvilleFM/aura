@@ -222,7 +222,31 @@ func derpi(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 			s.ChannelMessageSend(m.ChannelID, "Error: No results")
 			return nil
 		}
-		s.ChannelMessageSend(m.ChannelID, "http:"+searchResults.Search[randomRange(0, len(searchResults.Search))].Image)
+		derpiImage := searchResults.Search[randomRange(0, len(searchResults.Search))]
+
+		// Check for artist tag
+		artist := ""
+		for _, tag := range derpiImage.Tags {
+			if strings.Contains(tag, "artist:") {
+				artist = tag[7:]
+			}
+		}
+
+		outputEmbed := NewEmbed().
+			SetTitle("Derpibooru Image").
+			SetURL("https://derpibooru.org/" + derpiImage.ID).
+			SetDescription(derpiImage.Description).
+			SetImage("http:" + derpiImage.Image).
+			SetFooter("Image score: " + derpiImage.Score + " | Uploaded: " + derpiImage.CreatedAt)
+
+		// Credit the artist!
+		if artist == "" {
+			outputEmbed.SetAuthor("No artist")
+		} else {
+			outputEmbed.SetAuthor("Artist: " + artist)
+		}
+
+		s.ChannelMessageSendEmbed(m.ChannelID, outputEmbed)
 	} else {
 		s.ChannelMessageSend(m.ChannelID, "Please use this command in <#292755043684450304> only.")
 	}
