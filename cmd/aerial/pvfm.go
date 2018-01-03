@@ -237,7 +237,7 @@ func derpi(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 			SetURL("https://derpibooru.org/" + derpiImage.ID).
 			SetDescription(derpiImage.Description).
 			SetImage("http:" + derpiImage.Image).
-			SetFooter("Image score: " + derpiImage.Score + " | Uploaded: " + derpiImage.CreatedAt)
+			SetFooter("Image score: " + strconv.Itoa(derpiImage.Score) + " | Uploaded: " + derpiImage.CreatedAt.String())
 
 		// Credit the artist!
 		if artist == "" {
