@@ -246,7 +246,7 @@ func derpi(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 			outputEmbed.SetAuthor("Artist: " + artist)
 		}
 
-		s.ChannelMessageSendEmbed(m.ChannelID, outputEmbed)
+		s.ChannelMessageSendEmbed(m.ChannelID, outputEmbed.MessageEmbed)
 	} else {
 		s.ChannelMessageSend(m.ChannelID, "Please use this command in <#292755043684450304> only.")
 	}
