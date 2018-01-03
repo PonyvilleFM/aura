@@ -29,7 +29,7 @@ type DerpiResults struct {
 		Upvotes          int           `json:"upvotes"`
 		Downvotes        int           `json:"downvotes"`
 		Faves            int           `json:"faves"`
-		Tags             []string      `json:"tags"`
+		Tags             string        `json:"tags"`
 		TagIds           []string      `json:"tag_ids"`
 		AspectRatio      float64       `json:"aspect_ratio"`
 		OriginalFormat   string        `json:"original_format"`

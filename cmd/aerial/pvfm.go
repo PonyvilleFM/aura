@@ -224,9 +224,11 @@ func derpi(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 		}
 		derpiImage := searchResults.Search[randomRange(0, len(searchResults.Search))]
 
+		tags := strings.Split(derpiImage.Tags, ", ") // because this isn't an array for some reason
+
 		// Check for artist tag
 		artist := ""
-		for _, tag := range derpiImage.Tags {
+		for _, tag := range tags {
 			if strings.Contains(tag, "artist:") {
 				artist = tag[7:]
 			}
