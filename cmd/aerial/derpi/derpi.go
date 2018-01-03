@@ -2,11 +2,11 @@ package derpi
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
-	"fmt"
 )
 
 // DerpiResults is a struct to contain Derpibooru search results
@@ -29,7 +29,7 @@ type DerpiResults struct {
 		Upvotes          int           `json:"upvotes"`
 		Downvotes        int           `json:"downvotes"`
 		Faves            int           `json:"faves"`
-		Tags             string        `json:"tags"`
+		Tags             []string      `json:"tags"`
 		TagIds           []string      `json:"tag_ids"`
 		AspectRatio      float64       `json:"aspect_ratio"`
 		OriginalFormat   string        `json:"original_format"`
