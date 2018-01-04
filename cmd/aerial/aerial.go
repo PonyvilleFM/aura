@@ -64,7 +64,6 @@ func main() {
 	a.cs.AddCmd("time", "shows the current bot time", bot.NoPermissions, curTime)
 	a.cs.AddCmd("streams", "shows the different Ponyville FM stream links", bot.NoPermissions, streams)
 	a.cs.AddCmd("derpi", "grabs a random **__safe__** image from Derpibooru with the given search results", bot.NoPermissions, derpi)
-	a.cs.AddCmd("chat", "have a nice chat.", bot.NoPermissions, cleverbotChat)
 
 	dg.AddHandler(a.Handle)
 	dg.AddHandler(pesterLink)

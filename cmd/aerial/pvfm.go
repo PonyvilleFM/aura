@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/CleverbotIO/go-cleverbot.io"
 	derpiSearch "github.com/PonyvilleFM/aura/cmd/aerial/derpi"
 	"github.com/PonyvilleFM/aura/pvfm"
 	"github.com/PonyvilleFM/aura/pvfm/pvl"
@@ -18,22 +17,8 @@ import (
 	"strconv"
 )
 
-// these need to be global
-var cleverbotEnabled bool
-var cleverbotInstance *cleverbot.Session
-var cleverbotError error
-
 func init() {
-	// for rng
 	rand.Seed(time.Now().Unix())
-
-	// init cleverbot api
-	cleverbotEnabled = true
-	cleverbotInstance, cleverbotError = cleverbot.New("jVs62EervoYCCcyf", "hySidRsebILLfwUZI1Wkdxyicv5QCHnf", "")
-	if cleverbotError != nil {
-		cleverbotEnabled = false
-		log.Fatal(cleverbotError)
-	}
 }
 
 // randomRange gives a random whole integer between the given integers [min, max)
@@ -266,20 +251,6 @@ func derpi(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 		s.ChannelMessageSendEmbed(m.ChannelID, outputEmbed.MessageEmbed)
 	} else {
 		s.ChannelMessageSend(m.ChannelID, "Please use this command in <#292755043684450304> only.")
-	}
-	return nil
-}
-
-func cleverbotChat(s *discordgo.Session, m *discordgo.Message, parv []string) error {
-	if !cleverbotEnabled {
-		s.ChannelMessageSend(m.ChannelID, "Cleverbot API doesn't seem to be working right now. ��")
-	} else {
-		response, err := cleverbotInstance.Ask(m.Content[6:])
-		if err != nil {
-			s.ChannelMessageSend(m.ChannelID, "Uh oh! Something went wrong!\n"+err.Error())
-		} else {
-			s.ChannelMessageSend(m.ChannelID, response)
-		}
 	}
 	return nil
 }
