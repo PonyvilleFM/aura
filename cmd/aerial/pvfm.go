@@ -114,7 +114,7 @@ func schedule(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 	// Create embed object
 	outputEmbed := NewEmbed().
 		SetTitle("Upcoming Shows").
-		SetDescription("These are the upcoming shows and events airing soon on PVFM 1.")
+		SetDescription("These are the upcoming shows and events airing soon on PVFM 1.\n[Convert to your timezone](https://www.worldtimebuddy.com/?pl=1&lid=100&h=100)")
 
 	for _, entry := range schEntries {
 
@@ -174,7 +174,7 @@ func doStatsFromStation(s *discordgo.Session, m *discordgo.Message, parv []strin
 }
 
 func curTime(s *discordgo.Session, m *discordgo.Message, parv []string) error {
-	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("The time currently is %s", time.Now().UTC().Format("2006-01-02 15:04:05 UTC")))
+	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("The time currently is %s\nUse <https://www.worldtimebuddy.com/?pl=1&lid=100&h=100> to convert UTC to your local timezone.", time.Now().UTC().Format("2006-01-02 15:04:05 UTC")))
 
 	return nil
 }
