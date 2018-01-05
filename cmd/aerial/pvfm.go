@@ -254,3 +254,22 @@ func derpi(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 	}
 	return nil
 }
+
+func weather(s *discordgo.Session, m *discordgo.Message, parv []string) error {
+	responses := []string{
+		"Cloudy with a chance of meatballs.",
+		"It's currently pouring down even more than Pinkie.",
+		"It's the most overcast I've ever seen. In other words, same as always.",
+		"Do you have a better conversation starter than that?",
+		"There's at least 5 or 6 weather right now, my dude.",
+		"It's soggy enough for Rainbow Dash to get fired, if she didn't have a literal deity keeping her in charge.",
+		"Surprisingly, the weather is pretty alright.",
+		"You'd be happy to know that it's hot enough to make a phoenix sweat.",
+		"The weather right now is like you took London and stuck it in a dishwasher.",
+		"The Crystal Empire is warmer than this weather.",
+	}
+
+	s.ChannelMessageSend(m.ChannelID, responses[randomRange(0, len(responses))])
+
+	return nil
+}
