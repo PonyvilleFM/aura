@@ -11,7 +11,7 @@ import (
 )
 
 func genFname(username string) (string, error) {
-	return fmt.Sprintf("%s - %s.mp3", username, time.Now().Format(time.RFC822)), nil
+	return fmt.Sprintf("%s - %s.mp3", username, time.Now().Format(time.RFC3339)), nil
 }
 
 var (
