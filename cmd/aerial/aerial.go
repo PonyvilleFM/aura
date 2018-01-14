@@ -63,6 +63,7 @@ func main() {
 	a.cs.AddCmd("source", "source code information", bot.NoPermissions, source.Source)
 	a.cs.AddCmd("time", "shows the current bot time", bot.NoPermissions, curTime)
 	a.cs.AddCmd("streams", "shows the different Ponyville FM stream links", bot.NoPermissions, streams)
+	a.cs.AddCmd("servers", "shows the different Ponyville FM stream links", bot.NoPermissions, streams)
 	a.cs.AddCmd("derpi", "grabs a random **__safe__** image from Derpibooru with the given search results", bot.NoPermissions, derpi)
 	a.cs.AddCmd("weather", "how's the weather right now?", bot.NoPermissions, weather)
 
