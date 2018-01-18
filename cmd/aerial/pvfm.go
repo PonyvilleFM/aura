@@ -40,37 +40,10 @@ func pesterLink(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 }
 
-func dj(s *discordgo.Session, m *discordgo.Message, parv []string) error {
-	cal, err := pvl.Get()
-	if err != nil {
-		return err
-	}
-
-	now := cal.Result[0]
-	result := []string{}
-
-	localTime := time.Now()
-	thentime := time.Unix(now.StartTime, 0)
-	if thentime.Unix() < localTime.Unix() {
-		result = append(result, fmt.Sprintf("Currently live: %s\n", now.Title))
-		now = cal.Result[1]
-	}
-
-	nowTime := time.Unix(now.StartTime, 0).UTC()
-	zone, _ := nowTime.Zone()
-	fmttime, _ := strftime.Format("%Y-%m-%d %H:%M:%S", nowTime)
-
-	result = append(result, fmt.Sprintf("Next event: %s at %s \x02%s\x02",
-		now.Title,
-		fmttime,
-		zone,
-	))
-
-	s.ChannelMessageSend(m.ChannelID, strings.Join(result, "\n"))
-	return nil
-}
-
 func stats(s *discordgo.Session, m *discordgo.Message, parv []string) error {
+
+	// Regular metadata info
+
 	i, err := pvfm.GetStats()
 	if err != nil {
 		log.Printf("Error getting the station info: %v, falling back to plan b", err)
@@ -90,6 +63,38 @@ func stats(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 		peak = peak + source.ListenerPeak
 	}
 
+	// Live DJ info
+
+	// init variables
+	cal, err := pvl.Get()
+	if err != nil {
+		return err
+	}
+	now := cal.Result[0]
+
+	// times
+	localTime := time.Now()
+	thentime := time.Unix(now.StartTime, 0)
+
+	// checks if the event is currently happening
+	djInfo := "" // since we start with a conditional...
+	if thentime.Unix() < localTime.Unix() {
+		djInfo += fmt.Sprintf("**Currently live!**\n%s\n\n", now.Title)
+		now = cal.Result[1]
+	}
+
+	// Prepare time string
+	nowTime := time.Unix(now.StartTime, 0).UTC()
+	zone, _ := nowTime.Zone()
+	fmttime, _ := strftime.Format("%Y-%m-%d %H:%M:%S", nowTime)
+
+	// Piece data together into the result
+	djInfo += fmt.Sprintf("Next event:\n%s\n%s \x02%s\x02",
+		now.Title,
+		fmttime,
+		zone,
+	)
+
 	outputEmbed := NewEmbed().
 		SetTitle("Listener Statistics").
 		SetDescription("Use `;streams` if you need a link to the radio!\nTotal listeners across all stations: " + strconv.Itoa(i.Listeners.Listeners) + " with a maximum  of " + strconv.Itoa(peak) + ".")
@@ -97,6 +102,7 @@ func stats(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 	outputEmbed.AddField("🎵 Main", strconv.Itoa(i.Main.Listeners)+" listeners.\n"+i.Main.Nowplaying)
 	outputEmbed.AddField("🎵 Chill", strconv.Itoa(i.Secondary.Listeners)+" listeners.\n"+i.Secondary.Nowplaying)
 	outputEmbed.AddField("🎵 Free! (no DJ sets)", strconv.Itoa(i.MusicOnly.Listeners)+" listeners.\n"+i.MusicOnly.Nowplaying)
+	outputEmbed.AddField("🎛 Live DJs", djInfo)
 
 	outputEmbed.InlineAllFields()
 
