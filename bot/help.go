@@ -9,21 +9,6 @@ import (
 func (cs *CommandSet) help(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 	switch len(parv) {
 	case 1:
-		// print all help on all commands
-		result := formHelp()
-
-		s.ChannelMessageSend(m.ChannelID, result)
-
-	default:
-		return ErrParvCountMismatch
-	}
-
-	return nil
-}
-
-func (cs *CommandSet) dhelp(s *discordgo.Session, m *discordgo.Message, parv []string) error {
-	switch len(parv) {
-	case 1:
 
 		result := formHelp()
 
