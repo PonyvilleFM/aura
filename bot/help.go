@@ -15,7 +15,7 @@ func (cs *CommandSet) help(s *discordgo.Session, m *discordgo.Message, parv []st
 		authorChannel, err := s.UserChannelCreate(m.Author.ID)
 		s.ChannelMessageSend(authorChannel.ID, result)
 
-		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("@%s check direct messages, help is there!", m.Author.Username))
+		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("@<%s> check direct messages, help is there!", m.Author.ID))
 
 	default:
 		return ErrParvCountMismatch
