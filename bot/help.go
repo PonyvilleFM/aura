@@ -9,10 +9,13 @@ import (
 func (cs *CommandSet) help(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 	switch len(parv) {
 	case 1:
-
-		result := formHelp()
+		result := cs.formHelp()
 
 		authorChannel, err := s.UserChannelCreate(m.Author.ID)
+		if err != nil {
+			return err
+		}
+
 		s.ChannelMessageSend(authorChannel.ID, result)
 
 		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("@<%s> check direct messages, help is there!", m.Author.ID))
@@ -24,7 +27,7 @@ func (cs *CommandSet) help(s *discordgo.Session, m *discordgo.Message, parv []st
 	return nil
 }
 
-func formHelp() string {
+func (cs *CommandSet) formHelp() string {
 	result := "Bot commands: \n"
 
 	for verb, cmd := range cs.cmds {
