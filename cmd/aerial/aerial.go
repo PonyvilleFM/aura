@@ -54,7 +54,6 @@ func main() {
 	}
 
 	a.cs.Prefix = ";"
-	a.cs.AddCmd("dhelp", "__Recommended to use not to help-spam the channel__ sends help to your direct messages", bot.NoPermissions, dhelp)
 	a.cs.AddCmd("np", "shows radio station statistics for Ponyville FM", bot.NoPermissions, stats)
 	a.cs.AddCmd("stats", "shows radio station statistics for Ponyville FM", bot.NoPermissions, stats)
 	a.cs.AddCmd("dj", "shows which DJ is up next on Ponyville FM", bot.NoPermissions, stats)
