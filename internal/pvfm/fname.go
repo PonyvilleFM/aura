@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/PonyvilleFM/aura/pvfm/pvl"
+	"github.com/PonyvilleFM/aura/internal/pvfm/pvl"
 )
 
 func GenFilename() (string, error) {

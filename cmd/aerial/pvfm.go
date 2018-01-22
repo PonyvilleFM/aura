@@ -4,17 +4,17 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"strconv"
 	"strings"
 	"time"
 
 	derpiSearch "github.com/PonyvilleFM/aura/cmd/aerial/derpi"
-	"github.com/PonyvilleFM/aura/pvfm"
-	"github.com/PonyvilleFM/aura/pvfm/pvl"
-	pvfmschedule "github.com/PonyvilleFM/aura/pvfm/schedule"
-	"github.com/PonyvilleFM/aura/pvfm/station"
+	"github.com/PonyvilleFM/aura/internal/pvfm"
+	"github.com/PonyvilleFM/aura/internal/pvfm/pvl"
+	pvfmschedule "github.com/PonyvilleFM/aura/internal/pvfm/schedule"
+	"github.com/PonyvilleFM/aura/internal/pvfm/station"
 	"github.com/bwmarrin/discordgo"
 	"github.com/tebeka/strftime"
-	"strconv"
 )
 
 func init() {
