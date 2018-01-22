@@ -13,9 +13,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/PonyvilleFM/aura/bot"
-	"github.com/PonyvilleFM/aura/commands/source"
-	"github.com/PonyvilleFM/aura/recording"
+	"github.com/PonyvilleFM/aura/internal/bot"
+	"github.com/PonyvilleFM/aura/internal/commands/source"
+	"github.com/PonyvilleFM/aura/internal/recording"
 	"github.com/bwmarrin/discordgo"
 	_ "github.com/joho/godotenv/autoload"
 	hashids "github.com/speps/go-hashids"

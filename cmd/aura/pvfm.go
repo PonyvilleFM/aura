@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/PonyvilleFM/aura/pvfm/pvl"
+	"github.com/PonyvilleFM/aura/internal/pvfm/pvl"
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
 )

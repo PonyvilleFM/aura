@@ -19,12 +19,8 @@ def cleanup()
 end
 
 folders = [
-  "bot",
   "cmd",
-  "commands",
-  "doc",
-  "pvfm",
-  "recording",
+  "internal",
   "run",
   "vendor",
 ]

@@ -8,8 +8,8 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/PonyvilleFM/aura/bot"
-	"github.com/PonyvilleFM/aura/commands/source"
+	"github.com/PonyvilleFM/aura/internal/bot"
+	"github.com/PonyvilleFM/aura/internal/commands/source"
 	"github.com/bwmarrin/discordgo"
 	_ "github.com/joho/godotenv/autoload"
 )
