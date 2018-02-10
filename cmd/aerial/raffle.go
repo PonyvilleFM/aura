@@ -25,7 +25,7 @@ func raffleStart(s *discordgo.Session, m *discordgo.Message, parv []string) erro
 	defer ulock.Unlock()
 
 	raffleSessions[m.ChannelID] = m.Author.ID
-	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("<@%s> created a new raffle! Type %sraffle to enter!", m.Author.ID, ";"))
+	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("<@%s> created a new raffle! Type %senter to enter!", m.Author.ID, ";"))
 
 	return nil
 }
