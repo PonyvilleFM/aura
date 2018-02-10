@@ -82,7 +82,8 @@ func raffle(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 	}
 
 	cmap[m.Author.ID] = struct{}{}
-	raffleSessions[m.ChannelID] = cmap
+	raffleUsers[m.ChannelID] = cmap
 
 	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("<@%s>: your entry has been recorded!", m.Author.ID))
+	return nil
 }
