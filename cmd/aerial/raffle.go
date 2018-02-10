@@ -40,7 +40,7 @@ func rafflePop(s *discordgo.Session, m *discordgo.Message, parv []string) error 
 	}
 
 	if m.Author.ID != creator {
-		return fmt.Errorf("you are not <@%s>, you cannot end this raffle", creator)
+		return fmt.Errorf("you are not <@%s>, you cannot select a winner", creator)
 	}
 
 	cmap, ok := raffleUsers[m.ChannelID]
