@@ -59,6 +59,8 @@ func rafflePop(s *discordgo.Session, m *discordgo.Message, parv []string) error 
 
 	delete(cmap, u)
 	raffleUsers[m.ChannelID] = cmap
+
+	return nil
 }
 
 func raffleEnd(s *discordgo.Session, m *discordgo.Message, parv []string) error {
