@@ -30,7 +30,7 @@ func raffleStart(s *discordgo.Session, m *discordgo.Message, parv []string) erro
 	return nil
 }
 
-func raffleEnd(s *discordgo.Session, m *discordgo.Message, parv []string) error {
+func rafflePop(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 	ulock.Lock()
 	defer ulock.Unlock()
 
@@ -40,7 +40,7 @@ func raffleEnd(s *discordgo.Session, m *discordgo.Message, parv []string) error 
 	}
 
 	if m.Author.ID != creator {
-		return fmt.Errorf("you are not <@%s>, you cannot end this raffle")
+		return fmt.Errorf("you are not <@%s>, you cannot end this raffle", creator)
 	}
 
 	cmap, ok := raffleUsers[m.ChannelID]
@@ -56,8 +56,28 @@ func raffleEnd(s *discordgo.Session, m *discordgo.Message, parv []string) error 
 	u := users[i]
 
 	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Congrats <@%s>, you won!", u))
+
+	delete(cmap, u)
+	raffleUsers[m.ChannelID] = cmap
+}
+
+func raffleEnd(s *discordgo.Session, m *discordgo.Message, parv []string) error {
+	ulock.Lock()
+	defer ulock.Unlock()
+
+	creator, ok := raffleSessions[m.ChannelID]
+	if !ok {
+		return errors.New("no raffle currently running")
+	}
+
+	if m.Author.ID != creator {
+		return fmt.Errorf("you are not <@%s>, you cannot end this raffle", creator)
+	}
+
 	delete(raffleUsers, m.ChannelID)
 	delete(raffleSessions, m.ChannelID)
+
+	s.ChannelMessageSend(m.ChannelID, "Raffle destroyed.")
 
 	return nil
 }
