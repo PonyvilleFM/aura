@@ -6,12 +6,11 @@ services:
 language: go
 
 go:
-  - 1.9.1
+  - 1.9
 
 script:
   - curl -SsL https://github.com/box-builder/box/releases/download/v0.4.2/box-0.4.2.linux.gz -o box.gz
   - gunzip box.gz && chmod +x ./box
-  - docker pull xena/go-mini:1.9.1
   - docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
   - ./box --no-tty ./build/aerial.rb
   - ./box --no-tty ./build/aura.rb

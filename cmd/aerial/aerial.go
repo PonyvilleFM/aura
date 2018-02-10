@@ -66,6 +66,10 @@ func main() {
 	a.cs.AddCmd("servers", "shows the different Ponyville FM stream links", bot.NoPermissions, streams)
 	a.cs.AddCmd("derpi", "grabs a random **__safe__** image from Derpibooru with the given search results", bot.NoPermissions, derpi)
 	a.cs.AddCmd("weather", "how's the weather right now?", bot.NoPermissions, weather)
+	a.cs.AddCmd("enter", "enters you into the currently active raffle for this channel if one exists", bot.NoPermissions, raffle)
+	a.cs.AddCmd("start_raffle", "starts a raffle for the current channel", bot.NoPermissions, raffleStart)
+	a.cs.AddCmd("end_raffle", "ends the raffle for the current channel", bot.NoPermissions, raffleEnd)
+	a.cs.AddCmd("pop_raffle", "pops off a user from the pool of raffle entrants", bot.NoPermissions, rafflePop)
 
 	dg.AddHandler(a.Handle)
 	dg.AddHandler(pesterLink)
