@@ -16,8 +16,8 @@ func init() {
 
 var (
 	ulock          sync.Mutex
-	raffleUsers    map[string]map[string]struct{}
-	raffleSessions map[string]string
+	raffleUsers    = map[string]map[string]struct{}{}
+	raffleSessions = map[string]string{}
 )
 
 func raffleStart(s *discordgo.Session, m *discordgo.Message, parv []string) error {
