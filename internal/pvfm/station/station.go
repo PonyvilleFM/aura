@@ -65,7 +65,7 @@ func GetStats() (Info, error) {
 
 	i := Info{}
 
-	resp, err := http.Get("http://dj.bronyradio.com:7090/status-json.xsl")
+	resp, err := http.Get("http://dj.bronyradio.com:8000/status-json.xsl")
 	if err != nil {
 		return Info{}, err
 	}
