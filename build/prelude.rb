@@ -1,4 +1,4 @@
-from "xena/go:1.9.4"
+from "xena/go:1.11.1"
 
 $repo = "github.com/PonyvilleFM/aura"
 
@@ -7,7 +7,7 @@ def foldercopy(dir)
 end
 
 def gobuild(pkg)
-  run "go1.9.4 build #{$repo}/#{pkg} && go1.9.4 install #{$repo}/#{pkg}"
+  run "go1.11.1 build #{$repo}/#{pkg} && go1.11.1 install #{$repo}/#{pkg}"
 end
 
 def cleanup()
