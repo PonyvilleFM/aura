@@ -28,7 +28,7 @@ type Recording struct {
 
 // New creates a new Recording of the given URL to the given filename for output.
 func New(url, fname string) (*Recording, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Hour)
+	ctx, cancel := context.WithTimeout(context.Background(), 8*time.Hour)
 
 	r := &Recording{
 		ctx:     ctx,
