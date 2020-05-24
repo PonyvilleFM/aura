@@ -1,13 +1,11 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
 	"github.com/bwmarrin/discordgo"
-	"strings"
 )
 
 func printerFact(s *discordgo.Session, m *discordgo.Message, parv []string) error {
@@ -23,23 +21,15 @@ func printerFact(s *discordgo.Session, m *discordgo.Message, parv []string) erro
 }
 
 func getPrinterFact() (string, error) {
-	resp, err := http.Get("https://xena.stdlib.com/printerfacts")
+	resp, err := http.Get("https://printerfacts.cetacean.club/fact")
 	if err != nil {
 		return "", err
 	}
-
-	factStruct := &struct {
-		Facts []string `json:"facts"`
-	}{}
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return "", err
 	}
 
-	json.Unmarshal(body, factStruct)
-
-	text := fmt.Sprintf("%s", factStruct.Facts[0])
-
-	return text, nil
+	return string(body), nil
 }

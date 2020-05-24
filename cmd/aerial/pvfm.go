@@ -151,25 +151,39 @@ func curTime(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 	return nil
 }
 
-func streams(s *discordgo.Session, m *discordgo.Message, parv []string) error {
-	currentMeta, metaErr := station.GetStats()
-	if metaErr != nil {
-		s.ChannelMessageSend(m.ChannelID, "Error receiving pvfm metadata")
-		return metaErr
-	}
+const pvfmList = `SSL SAFE Streams
+PonyvilleFM Europe OGG Stream:
+https://dj.bronyradio.com/pvfm1.ogg
+PVFM AAC+ 3G/4G Mobile Stream:
+https://dj.bronyradio.com/pvfm1mobile.aac
+PonyvilleFM Free MP3 24/7 Pony Stream:
+https://dj.bronyradio.com/pvfmfree.mp3
+PonyvilleFM Free OGG 24/7 Pony Stream:
+https://dj.bronyradio.com/pvfmfree.ogg
+PVFM OPUS Stream:
+https://dj.bronyradio.com/pvfmopus.ogg
+PonyvilleFM Europe Stream:
+https://dj.bronyradio.com/stream.mp3
+PonyvilleFM High Quality Europe Stream:
+https://dj.bronyradio.com/streamhq.mp3
 
+Legacy Streams (non https)
+PonyvilleFM Europe OGG Stream:
+http://dj.bronyradio.com:8000/pvfm1.ogg
+PonyvilleFM Europe Stream:
+http://dj.bronyradio.com:8000/stream.mp3
+PonyvilleFM Free MP3 24/7 Pony Stream:
+http://dj.bronyradio.com:8000/pvfmfree.mp3
+PonyvilleFM Free OGG 24/7 Pony Stream:
+http://dj.bronyradio.com:8000/pvfmfree.ogg
+PVFM AAC+ 3G/4G Mobile Stream:
+http://dj.bronyradio.com:8000/pvfm1mobile.aac`
+
+func streams(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 	// start building custom embed
 	outputEmbed := NewEmbed().
 		SetTitle("Stream Links").
 		SetDescription("These are direct feeds of the live streams; most browsers and media players can play them!")
-
-	// this will dynamically build the list from station metadata
-	pvfmList := ""
-	for _, element := range currentMeta.Icestats.Source {
-		element.Listenurl = strings.ToLower(element.Listenurl)
-		element.Listenurl = strings.ReplaceAll(element.Listenurl, ":7090", ":8000")
-		pvfmList += element.ServerDescription + ":\n<" + strings.Replace(element.Listenurl, "aerial", "dj.bronyradio.com", -1) + ">\n"
-	}
 
 	// PVFM
 	outputEmbed.AddField(":musical_note:  PVFM Servers", pvfmList)
