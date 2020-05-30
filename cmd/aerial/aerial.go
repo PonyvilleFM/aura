@@ -58,6 +58,8 @@ func main() {
 	a.cs.AddCmd("stats", "shows radio station statistics for Ponyville FM", bot.NoPermissions, stats)
 	a.cs.AddCmd("dj", "shows which DJ is up next on Ponyville FM", bot.NoPermissions, stats)
 	a.cs.AddCmd("schedule", "shows the future radio schedule for Ponyville FM", bot.NoPermissions, schedule)
+	a.cs.AddCmd("bookmark", "sends info about the current track on Main stream with [**BOOKMARK**] tag, so you can easily find it", bot.NoPermissions, bookmark)
+	a.cs.AddCmd("bm", "short for `bookmark`", bot.NoPermissions, bookmark)
 	a.cs.AddCmd("printerfact", "shows useful facts about printers", bot.NoPermissions, printerFact)
 	a.cs.AddCmd("hipster", "hip me up fam", bot.NoPermissions, hipster)
 	a.cs.AddCmd("source", "source code information", bot.NoPermissions, source.Source)
