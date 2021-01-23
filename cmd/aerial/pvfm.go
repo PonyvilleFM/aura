@@ -190,7 +190,7 @@ func streams(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 	// Luna Radio
 	outputEmbed.AddField(":musical_note:  Luna Radio Servers", "Luna Radio MP3 128Kbps Stream:\n<http://radio.ponyvillelive.com:8002/stream.mp3>\nLuna Radio Mobile MP3 64Kbps Stream:\n<http://radio.ponyvillelive.com:8002/mobile?;stream.mp3>\n")
 	// Recordings
-	outputEmbed.AddField(":cd:  DJ Recordings", "Archive\n<https://pvfmsets.cf/var/93252527679639552/>\nLegacy Archive\n<https://xena.greedo.xeserv.us/files/bronyradio/darkling.darkwizards.com/wang/BronyRadio/>")
+	outputEmbed.AddField(":cd:  DJ Recordings", "Archive\n<https://pvfmsets.cf/var/93252527679639552/>\nLegacy Archive\n<https://pvfmsets.cf/BronyRadio/>")
 
 	s.ChannelMessageSendEmbed(m.ChannelID, outputEmbed.MessageEmbed)
 
