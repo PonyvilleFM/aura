@@ -377,6 +377,9 @@ func main() {
 		json.NewEncoder(w).Encode(a.state.Shorturls)
 	})
 
+	http.Handle("/BronyRadio/", http.FileServer(http.Dir(".")))
+	http.Handle("/sleepypony/", http.FileServer(http.Dir(".")))
+	http.Handle("/toastbeard/", http.FileServer(http.Dir(".")))
 	http.Handle("/var/", http.FileServer(http.Dir(".")))
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "./index.html")
