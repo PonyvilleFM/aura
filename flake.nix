@@ -42,5 +42,10 @@
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [ go gopls gotools go-tools ];
         };
-      });
+      }) // {
+        nixosModules = {
+          aerial = import ./nix/aerial.nix self;
+          aura = import ./nix/aura.nix self;
+        };
+      };
 }
