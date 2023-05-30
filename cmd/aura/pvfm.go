@@ -2,12 +2,9 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/PonyvilleFM/aura/internal/pvfm/pvl"
-	"github.com/dghubble/go-twitter/twitter"
-	"github.com/dghubble/oauth1"
 )
 
 func genFname(username string) (string, error) {

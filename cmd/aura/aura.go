@@ -242,10 +242,6 @@ func (a *aura) waitAndAnnounce(s *discordgo.Session, m *discordgo.Message, r *re
 	slink := fmt.Sprintf("https://%s/id/%s", recordingDomain, id)
 
 	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Recording complete (%s): %s", time.Now().Sub(r.StartTime()).String(), slink))
-
-	sn := r.creator
-
-	msg := fmt.Sprintf("New recording by %s: %s", sn, slink)
 }
 
 func urlencode(inp string) string {
@@ -370,6 +366,4 @@ func main() {
 // This function will be called (due to AddHandler above) every time a new
 // message is created on any channel that the autenticated bot has access to.
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
-	// Print message to stdout.
-	fmt.Printf("%20s %20s %20s > %s\n", m.ChannelID, time.Now().Format(time.Stamp), m.Author.Username, m.Content)
 }
