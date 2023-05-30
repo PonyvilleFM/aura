@@ -12,7 +12,6 @@ require (
 	github.com/dghubble/sling v1.1.0 // indirect
 	github.com/google/go-querystring v0.0.0-20170111101155-53e6ce116135 // indirect
 	github.com/google/gops v0.3.3-0.20171008181138-ce0552a5980f
-	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/joho/godotenv v1.2.0
 	github.com/kardianos/osext v0.0.0-20170510131534-ae77be60afb1 // indirect
 	github.com/onsi/ginkgo v1.10.3 // indirect
@@ -21,7 +20,6 @@ require (
 	github.com/sirupsen/logrus v1.4.2 // indirect
 	github.com/speps/go-hashids v1.0.1-0.20170705204438-c6ced3330f13
 	github.com/stretchr/testify v1.4.0 // indirect
-	github.com/tebeka/strftime v0.0.0-20140926081919-3f9c7761e312
 	golang.org/x/time v0.0.0-20170927054726-6dc17368e09b
 	gopkg.in/airbrake/gobrake.v2 v2.0.9 // indirect
 	gopkg.in/gemnasium/logrus-airbrake-hook.v2 v2.1.2 // indirect

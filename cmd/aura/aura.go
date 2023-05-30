@@ -216,22 +216,6 @@ func (a *aura) djon(s *discordgo.Session, m *discordgo.Message, parv []string) e
 
 	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Now recording: `%s`\n\n%s get in here fam", fname, os.Getenv("NOTIFICATION_SQUAD_ID")))
 
-	inv, err := s.ChannelInviteCreate(gid, discordgo.Invite{
-		MaxAge: 4800,
-	})
-	if err != nil {
-		log.Println(err)
-		return nil
-	}
-
-	invurl := "http://discord.gg/" + inv.Code
-
-	err = announce("Live DJ on-air: " + creator + "\nJoin our chat here: " + invurl)
-	if err != nil {
-		log.Println(err)
-		return nil
-	}
-
 	go a.waitAndAnnounce(s, m, a.guildRecordings[gid], gid)
 
 	return nil
@@ -262,11 +246,6 @@ func (a *aura) waitAndAnnounce(s *discordgo.Session, m *discordgo.Message, r *re
 	sn := r.creator
 
 	msg := fmt.Sprintf("New recording by %s: %s", sn, slink)
-	err = announce(msg)
-	if err != nil {
-		log.Println(err)
-		return
-	}
 }
 
 func urlencode(inp string) string {
