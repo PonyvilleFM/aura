@@ -107,6 +107,31 @@ func schedule(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 	return nil
 }
 
+func bookmark(s *discordgo.Session, m *discordgo.Message, parv []string) error {
+
+	i, err := pvfm.GetStats()
+	if err != nil {
+		log.Printf("Error getting the station info: %v, falling back to plan b", err)
+		return doStatsFromStation(s, m, parv)
+	}
+
+	st, err := station.GetStats()
+	if err != nil {
+		return err
+	}
+
+	authorChannel, err := s.UserChannelCreate(m.Author.ID)
+	if err != nil {
+		return err
+	}
+
+	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("<@%s> bookmark now is in your DM!", m.Author.ID))
+	s.ChannelMessageSend(authorChannel.ID, fmt.Sprintf("[**BOOKMARK**] *use a channel search to find all your bookmarks*\n"+i.Main.Nowplaying))
+
+	return nil
+
+}
+
 func doStationRequest(s *discordgo.Session, m *discordgo.Message, parv []string) error {
 	stats, err := station.GetStats()
 	if err != nil {
